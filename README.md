@@ -1,37 +1,30 @@
 # Agent Skills
 
-A collection of agent skills for AI coding assistants. Each skill is available for both GitHub Copilot and Claude Code — pick the one that matches your tool.
+A collection of agent skills for AI coding assistants. Each skill is available for both GitHub Copilot and Claude Code — pick the directory that matches your tool and follow the guide inside.
 
 ## Available Skills
 
-### Jira Story Creator
+| Skill | Description | Copilot | Claude Code |
+|-------|-------------|---------|-------------|
+| **Jira Story Creator** | Create, search, update, and link Jira user stories from natural language | [Guide](.github/jira-skill/ReadMe.md) | [Guide](.claude/skills/jira-skill/ReadMe.md) |
 
-Creates well-structured Jira user stories from natural language requirements. Searches, creates, updates, and links Jira issues via the Atlassian MCP Server.
+## How Skills Are Organised
 
-| Tool | Skill Location | Guide |
-|------|---------------|-------|
-| GitHub Copilot | `.github/jira-skill/` | [ReadMe](.github/jira-skill/ReadMe.md) |
-| Claude Code | `.claude/skills/jira-skill/` | [ReadMe](.claude/skills/jira-skill/ReadMe.md) |
+Each skill lives in two locations so both tools can discover it automatically:
 
-Both versions contain the same skill — identical templates, examples, formatting reference, and Python script. The only difference is the directory structure each tool expects.
+- **`.github/<skill-name>/`** — GitHub Copilot picks up skills from this directory
+- **`.claude/skills/<skill-name>/`** — Claude Code picks up skills from this directory
+
+Both copies contain the same files. Navigate to the directory for your tool and follow the ReadMe inside.
 
 ## Quick Start
 
 1. Clone this repository
-2. Navigate to the skill directory for your tool (see table above)
-3. Follow the ReadMe in that directory to configure credentials and the MCP server
-4. Start creating Jira stories from natural language
-
-## How It Works
-
-Each skill includes:
-
-- **SKILL.md** — The skill definition that your AI assistant loads automatically
-- **Reference files** — Story template, example stories, and Jira formatting guide
-- **Python script** — CLI tool for dry-run previews and fallback posting via the Jira REST API
-- **MCP server config** — Connects your assistant to Jira via the Atlassian MCP Server for direct board access
+2. Find the skill you want in the table above
+3. Click the guide link for your tool (Copilot or Claude Code)
+4. Follow the setup instructions in that ReadMe
 
 ## References
 
-- [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server)
 - [Agent Skills Specification](https://agentskills.io/specification)
+- [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server)
