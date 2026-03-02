@@ -4,18 +4,16 @@ description: Creates well-structured Jira user stories from natural language req
 compatibility: Requires Claude Code CLI, Node.js v18+, and an Atlassian Cloud account. Uses the Atlassian MCP Server for Jira integration.
 metadata:
   author: connorokane
-  version: "1.0"
+  version: "2.0"
 ---
 
 # Jira Story Creator
 
 ## Configuration
 
-The Jira instance and default project are read from environment variables:
-
-- **`JIRA_URL`** — Atlassian Cloud instance URL (e.g. `https://your-domain.atlassian.net`)
-- **`JIRA_PROJECT`** — Default project key (e.g. `SCRUM`)
+- **Jira Project:** Ask the user for the project key if not provided (e.g. `SCRUM`)
 - **Issue Type:** Story
+- **Posting method:** Atlassian MCP Server exclusively — no scripts, no credentials required
 
 ## Story Structure
 
@@ -30,7 +28,7 @@ Every story MUST have these six sections. See [story-template.md](references/sto
 
 ## Formatting
 
-Jira uses Wiki Markup, not Markdown. See [jira-formatting.md](references/jira-formatting.md) for the conversion reference. The `post-to-jira.py` script converts Markdown drafts automatically.
+Jira uses Wiki Markup, not Markdown. See [jira-formatting.md](references/jira-formatting.md) for the conversion reference. Convert the draft to Wiki Markup before posting via MCP.
 
 ## Workflow
 
@@ -41,49 +39,37 @@ Story Progress:
 - [ ] Step 1: Draft the story
 - [ ] Step 2: Validate the draft
 - [ ] Step 3: Get user approval
-- [ ] Step 4: Post to Jira
+- [ ] Step 4: Post to Jira via MCP
 - [ ] Step 5: Confirm the issue URL
 ```
 
 ### Step 1: Draft
 
-Gather requirements and create a Markdown file. Save to `/tmp/draft_<name>.md` — never inside the repository.
+Gather requirements and present the full story draft inline in the conversation for the user to review.
 
 ### Step 2: Validate
 
-Run the dry-run to preview the converted payload:
+Before presenting to the user, self-validate the draft:
 
-```bash
-python3 .claude/skills/jira-skill/scripts/post-to-jira.py /tmp/draft_<name>.md --dry-run
-```
-
-Check the output:
 - All six sections are present
 - Title is under 80 characters with an action verb
 - Acceptance criteria are testable pass/fail statements
-- No raw Markdown remains in the Wiki Markup output
+- No title text is repeated inside the description body
 
-If anything fails, fix the draft and run `--dry-run` again.
+If anything fails, fix the draft before presenting it.
 
 ### Step 3: Approve
 
-Present the dry-run output and ask: **"Does this look good? If so, provide the Epic key and I'll post it to Jira."**
+Present the draft and ask: **"Does this look good? If so, provide the Epic key and I'll post it to Jira."**
 
 Do NOT proceed until the user explicitly confirms.
 
 ### Step 4: Post
 
-**Via MCP** (preferred):
+Use the Atlassian MCP tools to create the issue:
 
-Use `atlassian:jira_create_issue` to create the story. Use `atlassian:jira_link_issues` to link it to an Epic if provided.
-
-**Via CLI** (fallback):
-
-```bash
-python3 .claude/skills/jira-skill/scripts/post-to-jira.py /tmp/draft_<name>.md --epic <EPIC-KEY>
-```
-
-The script reads credentials from `.claude/skills/jira-skill/scripts/.env` (copy from `.env.example`). Requires `pip install requests`.
+1. Call `createJiraIssue` with the story summary and Wiki Markup description
+2. If the user provided an Epic key, call `jiraWrite` with `createIssueLink` to link it
 
 ### Step 5: Confirm
 
@@ -93,12 +79,12 @@ Share the Jira issue URL with the user.
 
 | Tool | Purpose |
 |------|---------|
-| `atlassian:jira_create_issue` | Create a new issue |
-| `atlassian:jira_edit_issue` | Update an existing issue |
-| `atlassian:jira_get_issue` | Retrieve issue details |
-| `atlassian:jira_search` | Search issues with JQL |
-| `atlassian:jira_link_issues` | Link a story to an Epic |
-| `atlassian:jira_list_projects` | List available projects |
+| `createJiraIssue` | Create a new issue |
+| `editJiraIssue` | Update an existing issue |
+| `getJiraIssue` | Retrieve issue details |
+| `searchJiraIssuesUsingJql` | Search issues with JQL |
+| `jiraWrite` (createIssueLink) | Link a story to an Epic |
+| `getVisibleJiraProjects` | List available projects |
 
 ## Rules
 
