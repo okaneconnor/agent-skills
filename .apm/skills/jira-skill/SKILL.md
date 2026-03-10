@@ -1,13 +1,13 @@
----
-name: jira-skill
-description: Creates well-structured Jira user stories from natural language requirements and posts them to Atlassian Cloud Jira. Searches, updates, and links Jira issues via the Atlassian MCP Server. Activates when the user mentions Jira stories, tickets, user stories, epics, sprint planning, backlog grooming, or wants to convert notes, requirements, or meeting actions into Jira issues.
-compatibility: Requires Claude Code CLI, Node.js v18+, and an Atlassian Cloud account. Uses the Atlassian MCP Server for Jira integration.
-metadata:
-  author: connorokane
-  version: "2.0"
----
-
 # Jira Story Creator
+
+Create, search, update, and link Jira user stories from natural language requirements via the Atlassian MCP Server.
+
+## When to Use
+
+Use this skill when:
+- Creating Jira user stories from requirements, notes, or meeting actions
+- Searching, updating, or linking Jira issues
+- Sprint planning or backlog grooming
 
 ## Configuration
 

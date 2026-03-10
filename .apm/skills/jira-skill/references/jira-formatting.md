@@ -91,7 +91,6 @@ def hello():
 
 ## Important Notes
 
-- The `post-to-jira.py` script handles Markdown-to-Jira conversion automatically when posting
-- When writing drafts as `.md` files, use standard Markdown (the script converts it)
-- When writing content that will go directly into Jira (e.g. via the UI), use Jira Wiki Markup
-- Tables using `||header||` and `|cell|` syntax are already in Jira format and are preserved as-is by the script
+- When writing content that will go directly into Jira (e.g. via MCP or the UI), use Jira Wiki Markup
+- When writing drafts as `.md` files, use standard Markdown and convert before posting
+- Tables using `||header||` and `|cell|` syntax are already in Jira format
