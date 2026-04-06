@@ -46,7 +46,7 @@ Pick a type up front — different types have different layouts and different ev
 
 ## Workflow
 
-Follow these steps in order. Never skip the validation or approval steps.
+Follow these steps in order. Never skip the validation or approval steps **unless the user has opted into Quick Mode** (see below).
 
 ```
 Diagram Progress:
@@ -55,9 +55,24 @@ Diagram Progress:
 - [ ] Step 3: Build a cited model
 - [ ] Step 4: Self-validate against the accuracy checklist
 - [ ] Step 5: Get user approval on the model
+- [ ] Step 5b: Lay out coordinates on a grid using the spacing constants
 - [ ] Step 6: Render in Excalidraw
 - [ ] Step 7: Export and share
 ```
+
+### Quick Mode
+
+For exploratory or low-stakes diagrams the user can opt out of the cited-model approval gate. **Trigger phrases:** "quick mode", "just draw it", "rough sketch", "exploratory", "skip the approval", "no need to validate".
+
+In Quick Mode:
+
+- Skip Steps 4 and 5 (self-validation and user approval)
+- **Still do Step 5b** (grid layout with spacing constants — spacing is non-negotiable)
+- **Still do Pass 4** of the accuracy checklist (spacing audit)
+- The cited model becomes optional but recommended — it makes iteration cheaper
+- Tell the user up-front: "Quick mode — I'll draw without the approval gate. Spacing rules still apply."
+
+Use Quick Mode when the user is exploring an idea, sketching a concept, or doesn't yet know what they want. Never use it for documentation that will be shared, security reviews, or anything that needs to be accurate to a real codebase.
 
 ### Step 1: Scope
 
@@ -120,23 +135,39 @@ Present the cited model and ask: **"Does this match the architecture you wanted?
 
 Do NOT call `create_view` until the user explicitly confirms. Edits at this stage cost a few tokens; edits after rendering cost a full re-draw.
 
+### Step 5b: Lay out coordinates on a grid
+
+**Before writing any element JSON**, lay the diagram out on a coordinate grid using the spacing constants from [`excalidraw-style-guide.md`](references/excalidraw-style-guide.md#spacing-constants--hard-rules). Concretely:
+
+1. Pick the camera size from the camera plan table for your diagram type.
+2. Subtract `MARGIN_CANVAS` (60px) from each edge to get your drawable area.
+3. Compute row anchors using `GAP_LAYER` (140px) for layered diagrams or `GAP_SHAPE_V` (100px) for grids.
+4. Compute column anchors using `GAP_SHAPE_H` (80px) for adjacent shapes or `GAP_ACTOR_COL` (220px) for sequence-diagram actors.
+5. **Write the anchors down** before any element JSON. The blueprints in `diagram-types.md` show worked spacing budgets you can copy.
+6. If the layout doesn't fit at the spacing constants, use a **bigger camera** (Camera L → XL → XXL, or use the Landscape recipe). Never break a constant to fit.
+
+This step is non-negotiable. Diagrams that skip the grid step end up cramped, and "more spacing please" iterations become 80-element manual rewrites instead of one-line constant bumps.
+
 ### Step 6: Render
 
 Use the Excalidraw MCP Server to draw the approved model.
 
 1. **Call `read_me` first** if you have not seen the Excalidraw element format in this conversation. It returns the colour palette, element schema, camera rules, and worked examples. Do not call it twice.
-2. **Plan the layout** using the patterns in [diagram-types.md](references/diagram-types.md) and the styling rules in [excalidraw-style-guide.md](references/excalidraw-style-guide.md).
-3. **Call `create_view`** with the elements array. Stream elements progressively (background → shape → label → arrows → next shape) so the draw-on animation is coherent.
-4. Use **`cameraUpdate`** generously to pan and zoom the user's attention through the diagram as it builds — this is the single biggest readability lever.
-5. Save the returned `checkpointId` so you can iterate without re-sending the whole diagram.
+2. **Plan the layout** using the patterns in [diagram-types.md](references/diagram-types.md) and the styling rules in [excalidraw-style-guide.md](references/excalidraw-style-guide.md). You should already have grid coordinates from Step 5b.
+3. **Run Pass 4 of the accuracy checklist (spacing audit)** against your computed coordinates before emitting any elements. If any constant is violated, fix it (bump the constant, use a bigger camera, or apply the Landscape recipe) before proceeding.
+4. **Use standalone text elements only** — never the inline `label:` shortcut on shapes. The shortcut renders fine in `create_view` but produces empty boxes when exported. See the format divergence section in `excalidraw-style-guide.md`.
+5. **Call `create_view`** with the elements array. Stream elements progressively (background → shape → text label → arrows → arrow text labels → next shape) so the draw-on animation is coherent.
+6. Use **`cameraUpdate`** generously to pan and zoom the user's attention through the diagram as it builds — this is the single biggest readability lever.
+7. Save the returned `checkpointId` so you can iterate without re-sending the whole diagram.
 
 ### Step 7: Export
 
 Once the user is happy:
 
-1. Call `export_to_excalidraw` with the final JSON to publish to `excalidraw.com`
-2. Share the returned URL
-3. Offer to save the cited model alongside it as a `.md` file in the repo so future readers can verify the diagram
+1. Run the **pre-export format check** in [accuracy-checklist.md](references/accuracy-checklist.md#pre-export-format-check): no inline `label:` shortcuts in any element.
+2. Call `export_to_excalidraw` with the final JSON to publish to `excalidraw.com`
+3. Share the returned URL
+4. Offer to save the cited model alongside it as a `.md` file in the repo so future readers can verify the diagram
 
 ## MCP Tools Reference
 
@@ -154,9 +185,13 @@ Once the user is happy:
 - **Never invent.** If a component is not in the code, it is not in the diagram. No "for completeness" boxes.
 - **Diagram what is, not what should be.** This is a documentation tool, not a design tool.
 - **One diagram type at a time.** If the user wants both auth flow and deployment topology, draw them as two separate diagrams.
+- **Spacing constants are non-negotiable.** Never break a constant from `excalidraw-style-guide.md` to fit. Use a bigger camera instead.
+- **Always lay out on a grid before writing elements.** Step 5b is not optional unless the diagram has fewer than 4 shapes.
+- **Always use standalone text elements.** Never use the inline `label:` shortcut on shapes — it does not survive `export_to_excalidraw`.
 - **Always read the format reference once.** Call `read_me` at the start of any conversation that will produce a diagram, then never again.
 - **Always start with `cameraUpdate`.** Every `create_view` call must lead with a camera positioning element.
 - **Pan the camera as you draw.** Use multiple `cameraUpdate` entries to guide attention; do not draw a complex diagram in a single static view.
-- **Approve before drawing.** Never call `create_view` before the user has signed off on the cited model.
+- **Approve before drawing** (unless Quick Mode). Never call `create_view` before the user has signed off on the cited model — except in Quick Mode for exploratory diagrams.
+- **For "more spacing please" iterations: bump the constants and regenerate.** Never patch coordinates one at a time. See the iteration recipe in `excalidraw-style-guide.md`.
 - **Use the Explore subagent for big repos.** Anything over ~50 files of relevant code should be explored via a subagent to protect context.
 - **Hand the cited model back with the diagram.** Offer to save it as a markdown file alongside the diagram URL — the citations are the proof of accuracy.

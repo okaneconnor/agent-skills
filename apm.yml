@@ -1,5 +1,5 @@
 name: agent-skills
-version: 2.0.0
+version: 2.1.0
 description: >
   A curated collection of agent skills for AI coding assistants — Jira story
   authoring via the Atlassian MCP, and codebase architecture diagramming via

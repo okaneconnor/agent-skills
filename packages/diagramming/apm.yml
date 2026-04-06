@@ -1,5 +1,5 @@
 name: diagramming-skills
-version: 1.0.0
+version: 1.1.0
 description: >
   Excalidraw codebase diagramming skill — analyses a software or infrastructure
   repo and produces a cited, accurate diagram (architecture, auth flow,
