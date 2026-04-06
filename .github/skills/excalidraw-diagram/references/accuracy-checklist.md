@@ -2,7 +2,7 @@
 
 The whole point of this skill is to produce diagrams a reader can **trust without re-reading the codebase**. That trust is earned by running every cited model through this checklist before calling `create_view`. If anything fails, fix the model and run the checklist again.
 
-Run this in two passes: a **completeness** pass (what is missing) and a **correctness** pass (what is wrong).
+Run this in **four passes**: completeness (what is missing), correctness (what is wrong), drawability (does it fit), and **spacing** (is it well-spaced enough to actually read).
 
 ## Pass 1 — Completeness
 
@@ -81,6 +81,42 @@ The model is correct, but can it actually be drawn well?
 - [ ] **No "everything connects to everything"** spaghetti. If you see this, the diagram type is probably wrong (try sequence or data flow instead).
 - [ ] **The diagram answers the user's question.** Re-read the original ask. Does the model in front of you answer it?
 
+## Pass 4 — Spacing audit
+
+**This is the pass that catches the "looks cramped" failure mode.** The skill's spacing constants in [`excalidraw-style-guide.md`](excalidraw-style-guide.md#spacing-constants--hard-rules) are non-negotiable. Every blueprint in `diagram-types.md` is computed against them. This pass verifies your concrete coordinates honour the contract before you call `create_view`.
+
+Run a numeric scan over your planned coordinates (the grid you laid out in SKILL.md Step 5b) and check each item:
+
+- [ ] **Shape sizes:** every labelled rectangle is at least `SHAPE_MIN_W × SHAPE_MIN_H` (160 × 70). No exceptions for "small annotations" — if it has a label, it gets the minimum.
+- [ ] **Horizontal shape gaps:** every pair of shapes on the same row has at least `GAP_SHAPE_H` (80px) between them. Measure from right edge of left shape to left edge of right shape.
+- [ ] **Vertical shape gaps:** every pair of shapes on different rows has at least `GAP_SHAPE_V` (100px) between them.
+- [ ] **Layered diagrams:** every pair of consecutive layers is separated by at least `GAP_LAYER` (140px).
+- [ ] **Sequence diagrams:** every pair of adjacent actor lifelines is at least `GAP_ACTOR_COL` (220px) apart.
+- [ ] **Trust zones:** every shape inside a zone is at least `GAP_ZONE_INNER` (40px) from the zone border. Adjacent zones are at least `GAP_ZONE_OUTER` (60px) apart.
+- [ ] **Canvas margin:** no element is within `MARGIN_CANVAS` (60px) of the visible camera edge for that section.
+- [ ] **Labelled arrow length:** every arrow that carries a label is at least `ARROW_LEN_LABELLED` (140px) long. Measure: `sqrt(dx^2 + dy^2)`.
+- [ ] **Unlabelled arrow length:** every other arrow is at least `ARROW_LEN_UNLABELLED` (80px).
+- [ ] **Parallel arrows:** any two parallel arrows are at least `ARROW_PARALLEL_GAP` (40px) apart perpendicularly. (Two arrows merging visually = one arrow as far as the reader is concerned.)
+- [ ] **Fan-out angle:** when multiple arrows leave a single shape going in similar directions, sibling arrows have at least `FAN_OUT_ANGLE` (30°) of angular separation at the origin.
+- [ ] **Standalone label clearance:** every standalone text element has at least `GAP_LABEL_CLEAR` (20px) of clear space to any other element. Labels never sit inside another shape's bounds (unless they are intentionally that shape's title).
+- [ ] **No accidental overlaps:** scan for any two shapes whose bounding boxes intersect. There should be zero. (This catches the "I forgot to recompute this row after I shifted the column" bug.)
+- [ ] **No arrows passing through unrelated shapes:** an arrow's path between source and target must not cross any unrelated shape's bounds. If it does, route differently or move the obstructing shape.
+
+If any item fails, the fix is **not** to nudge individual elements. The fix is to:
+
+1. Identify which spacing constant the violation breaks
+2. Bump the relevant constant in your local layout (e.g. `GAP_LAYER += 30`)
+3. Recompute the row/column anchors from scratch
+4. Regenerate the elements array
+
+This is exactly the iteration recipe from the style guide. **Never patch coordinates one at a time** — that is how spacing problems become permanent.
+
+### Pre-export format check
+
+Before calling `export_to_excalidraw`, run this additional check:
+
+- [ ] **No inline `label:` shortcuts.** Scan the elements array for any shape with a `label:` field. If you find any, replace each with a separate `text` element with explicit `x`, `y`, `text`, and `fontSize`. The inline shortcut renders correctly in `create_view` but produces empty boxes when exported. See the format divergence section in `excalidraw-style-guide.md`.
+
 ## Failure modes to actively look for
 
 - **The README diagram trap.** You found a diagram in `README.md` and lifted its components. Stop. Read the IaC and confirm the README diagram still matches reality.
@@ -97,6 +133,13 @@ You are ready to call `create_view` when:
 1. Pass 1 is fully checked off for your diagram type
 2. Pass 2 has zero unresolved items
 3. Pass 3 confirms the diagram is drawable at the chosen camera size
-4. The user has explicitly said "render" or equivalent to the cited model
+4. **Pass 4 confirms every spacing constant is honoured** — no shortcuts
+5. The user has explicitly said "render" or equivalent to the cited model (or has opted into Quick Mode in SKILL.md)
 
-If any of those four are missing, **do not draw**. Either fix the model or go back to the user.
+If any of these are missing, **do not draw**. Either fix the model, fix the layout, or go back to the user.
+
+You are ready to call `export_to_excalidraw` when:
+
+1. The diagram has been successfully rendered with `create_view`
+2. The pre-export format check (no inline `label:` shortcuts) passes
+3. The user has asked to export
