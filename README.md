@@ -1,113 +1,110 @@
 # Agent Skills
 
-A collection of agent skills for AI coding assistants — Jira story creation and codebase architecture diagram generation via Excalidraw.
+A growing collection of agent skills for AI coding assistants (Claude Code, GitHub Copilot, Cursor) packaged as installable bundles via [APM (Agent Package Manager)](https://github.com/microsoft/apm). Skills are domain-specific knowledge + workflow definitions that the assistant loads automatically when relevant.
 
-Packaged with [APM (Agent Package Manager)](https://github.com/microsoft/apm) for easy installation across tools.
+## Structure
 
-## Install
+```
+.github/
+└── skills/
+    ├── jira-skill/
+    └── excalidraw-diagram/
+packages/
+├── jira/                ← Jira bundle (skill + Atlassian MCP)
+│   ├── .apm/
+│   └── apm.yml
+└── diagramming/         ← Diagramming bundle (skill + Excalidraw MCP)
+    ├── .apm/
+    └── apm.yml
+.vscode/mcp.json         ← MCP server config for VS Code / Copilot
+apm.yml                  ← Top-level meta-package (installs both bundles)
+```
 
+## Prerequisites
+
+### Always required
+
+- A supported AI coding assistant: **Claude Code**, **GitHub Copilot Chat** (in VS Code), or **Cursor**
+- [APM CLI](https://github.com/microsoft/apm) installed locally
+
+### MCP servers
+
+Some skills require an MCP server to be running. This repository's `.vscode/mcp.json` already wires up the required servers, and `apm install` will register them in any project where you install a bundle.
+
+| MCP server | Skills that use it | Setup |
+|---|---|---|
+| **Atlassian MCP** (`https://mcp.atlassian.com/v1/mcp`) | `jira-skill` | Auto-registered by the `jira` bundle. Browser opens for OAuth on first use — no API tokens stored. |
+| **Excalidraw MCP** (`https://mcp.excalidraw.com`) | `excalidraw-diagram` | Auto-registered by the `diagramming` bundle. No auth required. |
+
+## Skills
+
+Skills are invoked automatically by the assistant based on relevance, or explicitly by name in chat (e.g. *"use the excalidraw-diagram skill on this repo"*).
+
+### Jira
+
+| Skill | Description |
+|---|---|
+| `jira-skill` | Drafts, validates, and posts structured Jira user stories from natural language requirements. Six-section template (title, short description, why, work to complete, additional information, acceptance criteria), self-validation, explicit user approval before posting. Uses **Atlassian MCP**. |
+
+### Diagramming
+
+| Skill | Description |
+|---|---|
+| `excalidraw-diagram` | Analyses a software or infrastructure codebase and produces a cited, accurate Excalidraw diagram (architecture overview, auth flow, security model, data flow, deployment topology, sequence flow, module dependency). Every shape and arrow traces to a `file:line` in the repo before rendering. Uses **Excalidraw MCP**. |
+
+## Getting Started
+
+### Option A — APM (recommended)
+
+Install all bundles at once or pick individual ones using [APM (Agent Package Manager)](https://github.com/microsoft/apm).
+
+**Install APM:**
 ```bash
+brew install microsoft/apm/apm        # macOS (Homebrew)
+curl -sSL https://aka.ms/apm-unix | sh  # macOS / Linux
+irm https://aka.ms/apm-windows | iex    # Windows
+```
+
+**Install bundles:**
+```bash
+# Everything (both bundles + all MCP servers)
 apm install okaneconnor/agent-skills
+
+# Or pick a single bundle
+apm install okaneconnor/agent-skills/packages/jira
+apm install okaneconnor/agent-skills/packages/diagramming
 ```
 
-## What's Included
+| Bundle | What's included |
+|---|---|
+| `packages/jira` | `jira-skill` + Atlassian MCP — draft, validate, and post Jira user stories from natural language. |
+| `packages/diagramming` | `excalidraw-diagram` skill + Excalidraw MCP — analyse a codebase and produce a cited architecture / auth / security / data-flow diagram. |
 
-| Primitive | File | Purpose |
-|-----------|------|---------|
-| **Skill** | `.apm/skills/jira-skill/SKILL.md` | Create, search, update, and link Jira user stories from natural language |
-| **Skill** | `.apm/skills/excalidraw-diagram/SKILL.md` | Analyse a software or infrastructure codebase and draw an accurate, cited Excalidraw diagram (architecture, auth flow, security, data flow, deployment topology, sequence, module dependency) |
+APM installs skills to the directory your assistant expects (`.claude/skills/`, `.cursor/skills/`, `.github/skills/`, `.agents/skills/`) and writes the required MCP servers into the matching MCP config file automatically.
 
-### Jira Skill Reference Files
+> Pin a specific version with `#vX.Y.Z` (e.g. `apm install okaneconnor/agent-skills#v2.0.0`) to prevent drift. Run `apm install --update` to refresh the lockfile.
 
-The Jira skill includes reference files in `.apm/skills/jira-skill/references/`:
+---
 
-| File | Purpose |
-|------|---------|
-| `story-template.md` | Blank template with per-section guidelines |
-| `good-story-examples.md` | Four completed example stories across different domains |
-| `jira-formatting.md` | Markdown to Jira Wiki Markup conversion reference |
+### Option B — Clone directly
 
-### Excalidraw Diagram Reference Files
+1. Clone or fork this repository.
+2. Open the folder in your assistant of choice.
+3. The skills under `.github/skills/` are loaded automatically by Claude Code / Copilot / Cursor.
+4. Ensure the relevant MCP server is running (`.vscode/mcp.json` is pre-wired for both Atlassian and Excalidraw).
+5. Invoke a skill explicitly by name — e.g. *"use the excalidraw-diagram skill on `~/repos/foo` and draw the auth flow"*.
 
-The Excalidraw diagram skill includes reference files in `.apm/skills/excalidraw-diagram/references/`:
+## Adding a new skill
 
-| File | Purpose |
-|------|---------|
-| `analysis-workflow.md` | Citation-first codebase exploration steps, with per-diagram-type discovery checklists |
-| `diagram-types.md` | Layout blueprints for the 7 supported diagram types (architecture, auth flow, security, data flow, topology, sequence, module dependency) |
-| `excalidraw-style-guide.md` | Opinionated colour/shape/arrow vocabulary, camera planning, and streaming order on top of the Excalidraw MCP `read_me` reference |
-| `accuracy-checklist.md` | Three-pass pre-render validation (completeness, correctness, drawability) used to guarantee every shape and arrow is cited from the code |
-
-## MCP Server Setup
-
-### Atlassian MCP Server (Jira Skill)
-
-This package uses the [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server) for Jira integration.
-
-**Claude Code** — add to `.mcp.json`:
-```json
-{
-  "mcpServers": {
-    "atlassian": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/mcp"]
-    }
-  }
-}
-```
-
-**GitHub Copilot (VS Code)** — add to `.vscode/mcp.json`:
-```json
-{
-  "servers": {
-    "atlassian": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/mcp"]
-    }
-  }
-}
-```
-
-Start your tool and a browser window will open for OAuth authentication. No API tokens or credentials need to be stored.
-
-### Excalidraw MCP Server (Codebase Diagram Skill)
-
-The codebase diagram skill uses the [Excalidraw MCP Server](https://mcp.excalidraw.com) to render diagrams inline and publish them to excalidraw.com.
-
-**Claude Code** — add to `.mcp.json`:
-```json
-{
-  "mcpServers": {
-    "excalidraw": {
-      "type": "http",
-      "url": "https://mcp.excalidraw.com"
-    }
-  }
-}
-```
-
-**GitHub Copilot (VS Code)** — already wired up in this repo's `.vscode/mcp.json`. To add it elsewhere:
-```json
-{
-  "servers": {
-    "excalidraw": {
-      "type": "http",
-      "url": "https://mcp.excalidraw.com"
-    }
-  }
-}
-```
-
-## Adding New Skills
-
-1. Create a directory under `.apm/skills/<skill-name>/`
-2. Add a `SKILL.md` describing what the skill does, when to use it, and how it works
-3. Place any reference files in a `references/` subdirectory
-4. Update this README to list the new skill
+1. Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter (`name`, `description`).
+2. Add reference files under `.github/skills/<skill-name>/references/` if the skill needs supporting knowledge.
+3. Add the skill to the relevant bundle's `dependencies.apm` list in `packages/<bundle>/apm.yml` (or create a new bundle).
+4. If the skill needs an MCP server, add it under `dependencies.mcp` in the same bundle's `apm.yml` and mirror the entry in `.vscode/mcp.json` so local development works.
+5. Update this README's skill table.
 
 ## Learn More
 
-- [APM Documentation](https://github.com/microsoft/apm)
+- [APM Documentation](https://microsoft.github.io/apm/)
 - [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server)
 - [Excalidraw](https://excalidraw.com)
 - [Agent Skills Specification](https://agentskills.io/specification)

@@ -1,3 +1,8 @@
+---
+name: jira-skill
+description: Create, search, update, and link Jira user stories from natural language requirements via the Atlassian MCP Server. Use when the user asks to "create a Jira story", "draft a ticket", "raise an issue", "search Jira", "update a Jira ticket", "link a story to an epic", or mentions sprint planning, backlog grooming, or refining a user story. Drafts a structured six-section story (title, short description, why, work to complete, additional information, acceptance criteria), self-validates it, gets explicit user approval, then posts via the Atlassian MCP. Do NOT use this for posting comments or work logs — only for issue creation, edits, search, and linking.
+---
+
 # Jira Story Creator
 
 Create, search, update, and link Jira user stories from natural language requirements via the Atlassian MCP Server.

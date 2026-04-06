@@ -1,0 +1,20 @@
+name: diagramming-skills
+version: 1.0.0
+description: >
+  Excalidraw codebase diagramming skill — analyses a software or infrastructure
+  repo and produces a cited, accurate diagram (architecture, auth flow,
+  security, data flow, deployment topology, sequence, module dependency)
+  rendered via the Excalidraw MCP Server.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills
+    - okaneconnor/agent-skills/.github/skills/excalidraw-diagram
+  mcp:
+    - name: excalidraw
+      registry: false
+      transport: http
+      url: "https://mcp.excalidraw.com"
