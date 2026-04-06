@@ -1,0 +1,19 @@
+name: jira-skills
+version: 1.0.0
+description: >
+  Jira story authoring, search, update, and linking via the Atlassian MCP
+  Server. Drafts a structured six-section user story, self-validates it,
+  and posts it to Jira after explicit user approval.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills
+    - okaneconnor/agent-skills/.github/skills/jira-skill
+  mcp:
+    - name: atlassian
+      registry: false
+      transport: http
+      url: "https://mcp.atlassian.com/v1/mcp"

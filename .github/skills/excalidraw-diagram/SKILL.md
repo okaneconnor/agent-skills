@@ -1,3 +1,8 @@
+---
+name: excalidraw-diagram
+description: Analyse a software or infrastructure codebase and produce a detailed, accurate Excalidraw diagram of its architecture, auth flow, security model, deployment topology, data flow, sequence flow, or module dependencies. Use when the user asks to "draw an architecture diagram of this repo", "show me how auth works", "diagram the security model", "visualise the data flow", "create an Excalidraw of the codebase", or points at a repo and wants a cited, accurate visual. Builds a citation-first model where every shape and arrow traces to a `file:line`, gets explicit approval, then renders via the Excalidraw MCP Server (https://mcp.excalidraw.com) and exports to a shareable URL. Do NOT use for speculative/aspirational architecture, single-file UML class diagrams, or Mermaid/Draw.io output.
+---
+
 # Codebase Architecture Diagrammer
 
 Analyse a software or infrastructure codebase and produce a detailed, accurate Excalidraw diagram of its architecture, auth flow, security model, deployment topology, data flow, or component interactions. Diagrams are rendered through the Excalidraw MCP Server.

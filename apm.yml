@@ -1,6 +1,14 @@
 name: agent-skills
-version: 1.0.0
-description: A collection of agent skills for AI coding assistants — Jira story creation and codebase architecture diagram generation via Excalidraw.
+version: 2.0.0
+description: >
+  A curated collection of agent skills for AI coding assistants — Jira story
+  authoring via the Atlassian MCP, and codebase architecture diagramming via
+  the Excalidraw MCP. Install all bundles at once or pick individual ones.
+author: okaneconnor
+license: MIT
+target: all
 
 dependencies:
-  apm: []
+  apm:
+    - okaneconnor/agent-skills/packages/jira
+    - okaneconnor/agent-skills/packages/diagramming
