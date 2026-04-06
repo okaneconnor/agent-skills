@@ -1,6 +1,6 @@
 name: agent-skills
 version: 1.0.0
-description: A collection of agent skills for AI coding assistants — Jira story creation, search, and management via the Atlassian MCP Server.
+description: A collection of agent skills for AI coding assistants — Jira story creation and codebase architecture diagram generation via Excalidraw.
 
 dependencies:
   apm: []

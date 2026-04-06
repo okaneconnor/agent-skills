@@ -1,6 +1,6 @@
 # Agent Skills
 
-A collection of agent skills for AI coding assistants — Jira story creation, search, and management via the Atlassian MCP Server.
+A collection of agent skills for AI coding assistants — Jira story creation and codebase architecture diagram generation via Excalidraw.
 
 Packaged with [APM (Agent Package Manager)](https://github.com/microsoft/apm) for easy installation across tools.
 
@@ -15,8 +15,9 @@ apm install connorokane/agent-skills
 | Primitive | File | Purpose |
 |-----------|------|---------|
 | **Skill** | `.apm/skills/jira-skill/SKILL.md` | Create, search, update, and link Jira user stories from natural language |
+| **Skill** | `.apm/skills/excalidraw-diagram/SKILL.md` | Analyse a software or infrastructure codebase and draw an accurate, cited Excalidraw diagram (architecture, auth flow, security, data flow, deployment topology, sequence, module dependency) |
 
-### Reference Files
+### Jira Skill Reference Files
 
 The Jira skill includes reference files in `.apm/skills/jira-skill/references/`:
 
@@ -26,9 +27,22 @@ The Jira skill includes reference files in `.apm/skills/jira-skill/references/`:
 | `good-story-examples.md` | Four completed example stories across different domains |
 | `jira-formatting.md` | Markdown to Jira Wiki Markup conversion reference |
 
+### Excalidraw Diagram Reference Files
+
+The Excalidraw diagram skill includes reference files in `.apm/skills/excalidraw-diagram/references/`:
+
+| File | Purpose |
+|------|---------|
+| `analysis-workflow.md` | Citation-first codebase exploration steps, with per-diagram-type discovery checklists |
+| `diagram-types.md` | Layout blueprints for the 7 supported diagram types (architecture, auth flow, security, data flow, topology, sequence, module dependency) |
+| `excalidraw-style-guide.md` | Opinionated colour/shape/arrow vocabulary, camera planning, and streaming order on top of the Excalidraw MCP `read_me` reference |
+| `accuracy-checklist.md` | Three-pass pre-render validation (completeness, correctness, drawability) used to guarantee every shape and arrow is cited from the code |
+
 ## MCP Server Setup
 
-This package uses the [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server) for Jira integration. After installing, configure the MCP server for your tool:
+### Atlassian MCP Server (Jira Skill)
+
+This package uses the [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server) for Jira integration.
 
 **Claude Code** — add to `.mcp.json`:
 ```json
@@ -56,12 +70,33 @@ This package uses the [Atlassian MCP Server](https://github.com/atlassian/atlass
 
 Start your tool and a browser window will open for OAuth authentication. No API tokens or credentials need to be stored.
 
-## Manual Setup (without APM)
+### Excalidraw MCP Server (Codebase Diagram Skill)
 
-Copy the skill files to the location your tool expects:
+The codebase diagram skill uses the [Excalidraw MCP Server](https://mcp.excalidraw.com) to render diagrams inline and publish them to excalidraw.com.
 
-- **Claude Code** — copy `.apm/skills/jira-skill/` to `.claude/skills/jira-skill/`
-- **GitHub Copilot** — copy `.apm/skills/jira-skill/` to `.github/jira-skill/`
+**Claude Code** — add to `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "excalidraw": {
+      "type": "http",
+      "url": "https://mcp.excalidraw.com"
+    }
+  }
+}
+```
+
+**GitHub Copilot (VS Code)** — already wired up in this repo's `.vscode/mcp.json`. To add it elsewhere:
+```json
+{
+  "servers": {
+    "excalidraw": {
+      "type": "http",
+      "url": "https://mcp.excalidraw.com"
+    }
+  }
+}
+```
 
 ## Adding New Skills
 
@@ -74,4 +109,5 @@ Copy the skill files to the location your tool expects:
 
 - [APM Documentation](https://github.com/microsoft/apm)
 - [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server)
+- [Excalidraw](https://excalidraw.com)
 - [Agent Skills Specification](https://agentskills.io/specification)
