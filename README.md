@@ -7,7 +7,7 @@ Packaged with [APM (Agent Package Manager)](https://github.com/microsoft/apm) fo
 ## Install
 
 ```bash
-apm install connorokane/agent-skills
+apm install okaneconnor/agent-skills
 ```
 
 ## What's Included
