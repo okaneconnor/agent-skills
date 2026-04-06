@@ -113,9 +113,13 @@ This is exactly the iteration recipe from the style guide. **Never patch coordin
 
 ### Pre-export format check
 
-Before calling `export_to_excalidraw`, run this additional check:
+Before calling `export_to_excalidraw`, run this scan over the elements array. The full reference for each item is in [`export-schema.md`](export-schema.md) — `create_view` is lenient and `export_to_excalidraw` is strict, so a diagram that renders fine inline can still come back as empty boxes after export.
 
-- [ ] **No inline `label:` shortcuts.** Scan the elements array for any shape with a `label:` field. If you find any, replace each with a separate `text` element with explicit `x`, `y`, `text`, and `fontSize`. The inline shortcut renders correctly in `create_view` but produces empty boxes when exported. See the format divergence section in `excalidraw-style-guide.md`.
+- [ ] **No inline `label:` shortcuts on shapes.** Scan for any shape with a `label:` field. The shortcut is a `create_view` convenience, not part of the wire format — it renders inline and disappears on export. Replace each with a standalone `text` element using the full schema below.
+- [ ] **Every text element carries the full Excalidraw text schema.** Each `text` element must have **all** of: `type`, `id`, `x`, `y`, `width`, `height`, `strokeColor`, `text`, `originalText` (matching `text`), `fontSize`, `fontFamily` (default `5`), `textAlign`, `verticalAlign`, `baseline` (≈`fontSize * 0.85`), `containerId` (`null` for standalone), `lineHeight` (`1.25`). Any missing field strips the text on export.
+- [ ] **Built via the Python heredoc, not by hand.** A 100-element diagram with hand-written full-schema JSON is impractical — the typo rate is too high. Use the verified builder template in [`export-schema.md`](export-schema.md#builder-template--the-verified-recipe).
+- [ ] **JSON file size fits the bash output cap.** Run `wc -c` on the generated file. If it reports more than ~30 KB, the `cat` step that feeds the export call will be truncated. Trim per the size budget in [`export-schema.md`](export-schema.md#size-budget).
+- [ ] **2-element smoke test passes for fresh conversations.** If this is the first export of the conversation, run the test from [`export-schema.md`](export-schema.md#the-2-element-smoke-test) before generating the full diagram. Five seconds of verification is much cheaper than three rounds of debugging.
 
 ## Failure modes to actively look for
 
@@ -141,5 +145,6 @@ If any of these are missing, **do not draw**. Either fix the model, fix the layo
 You are ready to call `export_to_excalidraw` when:
 
 1. The diagram has been successfully rendered with `create_view`
-2. The pre-export format check (no inline `label:` shortcuts) passes
+2. **Every item in the pre-export format check passes** — full text schema, no `label:` shortcuts, size under the cat cap, smoke test green
 3. The user has asked to export
+4. After exporting, you have **opened the URL and confirmed the text is visible** — the inline render does not prove the export is correct

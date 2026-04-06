@@ -155,7 +155,7 @@ Use the Excalidraw MCP Server to draw the approved model.
 1. **Call `read_me` first** if you have not seen the Excalidraw element format in this conversation. It returns the colour palette, element schema, camera rules, and worked examples. Do not call it twice.
 2. **Plan the layout** using the patterns in [diagram-types.md](references/diagram-types.md) and the styling rules in [excalidraw-style-guide.md](references/excalidraw-style-guide.md). You should already have grid coordinates from Step 5b.
 3. **Run Pass 4 of the accuracy checklist (spacing audit)** against your computed coordinates before emitting any elements. If any constant is violated, fix it (bump the constant, use a bigger camera, or apply the Landscape recipe) before proceeding.
-4. **Use standalone text elements only** — never the inline `label:` shortcut on shapes. The shortcut renders fine in `create_view` but produces empty boxes when exported. See the format divergence section in `excalidraw-style-guide.md`.
+4. **If the diagram will be exported, build the elements via the Python builder template in [export-schema.md](references/export-schema.md#builder-template--the-verified-recipe), not by hand and not via the inline `label:` shortcut.** The shortcut and minimal standalone text both render fine in `create_view` but get stripped on export to `excalidraw.com`. The Python heredoc emits full-schema text elements that survive both code paths. For preview-only diagrams that will never be exported, the inline `label:` shortcut is still fine.
 5. **Call `create_view`** with the elements array. Stream elements progressively (background → shape → text label → arrows → arrow text labels → next shape) so the draw-on animation is coherent.
 6. Use **`cameraUpdate`** generously to pan and zoom the user's attention through the diagram as it builds — this is the single biggest readability lever.
 7. Save the returned `checkpointId` so you can iterate without re-sending the whole diagram.
@@ -164,10 +164,12 @@ Use the Excalidraw MCP Server to draw the approved model.
 
 Once the user is happy:
 
-1. Run the **pre-export format check** in [accuracy-checklist.md](references/accuracy-checklist.md#pre-export-format-check): no inline `label:` shortcuts in any element.
-2. Call `export_to_excalidraw` with the final JSON to publish to `excalidraw.com`
-3. Share the returned URL
-4. Offer to save the cited model alongside it as a `.md` file in the repo so future readers can verify the diagram
+1. Run the **pre-export format check** in [accuracy-checklist.md](references/accuracy-checklist.md#pre-export-format-check): full text schema on every text element, no `label:` shortcuts, JSON size under the bash output cap, 2-element smoke test green for fresh conversations.
+2. Generate the final JSON via the Python heredoc recipe in [export-schema.md](references/export-schema.md#end-to-end-recipe). Pipe to `/tmp/diagram.json`, verify size with `wc -c`, then `cat` it to dump the JSON into your context.
+3. Call `export_to_excalidraw` with the JSON content from step 2.
+4. **Open the returned URL and verify the text is visible** before sharing it with the user. The inline render is not proof the export worked — they use different validators. See [export-schema.md](references/export-schema.md#verifying-the-export--never-trust-the-inline-render-alone).
+5. Share the URL.
+6. Offer to save the cited model alongside it as a `.md` file in the repo so future readers can verify the diagram.
 
 ## MCP Tools Reference
 
@@ -187,7 +189,8 @@ Once the user is happy:
 - **One diagram type at a time.** If the user wants both auth flow and deployment topology, draw them as two separate diagrams.
 - **Spacing constants are non-negotiable.** Never break a constant from `excalidraw-style-guide.md` to fit. Use a bigger camera instead.
 - **Always lay out on a grid before writing elements.** Step 5b is not optional unless the diagram has fewer than 4 shapes.
-- **Always use standalone text elements.** Never use the inline `label:` shortcut on shapes — it does not survive `export_to_excalidraw`.
+- **For export-bound diagrams, build via the Python heredoc with the full text schema.** Inline `label:` shortcuts and minimal standalone text both render fine in `create_view` and both get stripped on export. See [export-schema.md](references/export-schema.md).
+- **Always verify the exported URL with your own eyes.** The inline render uses a different validator than the export — passing inline does not prove the export will work. Open the URL, confirm text is visible, then share it.
 - **Always read the format reference once.** Call `read_me` at the start of any conversation that will produce a diagram, then never again.
 - **Always start with `cameraUpdate`.** Every `create_view` call must lead with a camera positioning element.
 - **Pan the camera as you draw.** Use multiple `cameraUpdate` entries to guide attention; do not draw a complex diagram in a single static view.

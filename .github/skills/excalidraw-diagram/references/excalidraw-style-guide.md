@@ -96,26 +96,40 @@ Pick the shape based on what the component **is**, not what looks pretty:
 
 Every labelled rectangle MUST be at least `SHAPE_MIN_W × SHAPE_MIN_H` (160×70). Smaller shapes truncate the label or get drowned out by the surrounding gaps.
 
-## Inline vs export — the format divergence rule
+## Inline vs export — the validation divergence
 
-This is the single biggest gotcha in the Excalidraw MCP and it has burned us. Read it twice.
+This is the single biggest gotcha in the Excalidraw MCP and it has burned us repeatedly. Read it twice. The full reference is in [`export-schema.md`](export-schema.md) — this section is the summary.
 
-**`create_view` and `export_to_excalidraw` accept different element formats.**
+**`create_view` and `export_to_excalidraw` accept the same JSON shape but apply different validators.**
 
-- `create_view` supports a `label: { text: "...", fontSize: ... }` shortcut on shapes — the MCP auto-centres the label inside the shape and resizes the container to fit.
-- `export_to_excalidraw` does **not** honour this shortcut. Inline labels render as **empty boxes** in the exported file. The text is silently dropped.
+- **`create_view` is lenient.** Missing fields on text elements (`fontFamily`, `width`, `height`, `baseline`, `lineHeight`, `containerId`, `originalText`) get filled in with defaults before drawing. The render looks correct in the conversation.
+- **`export_to_excalidraw` is strict.** It pushes your JSON literally to `excalidraw.com`, which refuses to render any text element missing those fields. Shapes survive; text vanishes; the diagram is unusable.
 
-**Therefore: never use the inline `label:` shortcut.** Always emit text as a separate `text` element with explicit `x`, `y`, `text`, `fontSize`, and (where needed) `fontFamily`. Yes, this costs more tokens. The cost of an empty exported diagram is much higher.
+Both of the obvious workarounds **also** fail on export:
 
-Recipe for a labelled shape:
+| Approach | Inline render | Export |
+|---|---|---|
+| Inline `label: { text: "..." }` shortcut on a shape | works | text dropped |
+| Minimal standalone text (just `text` + `fontSize` + `strokeColor`) | works | text dropped |
+| Standalone text with the **full schema** in `export-schema.md` | works | works |
+
+**Therefore: every text element you intend to export must carry the full Excalidraw text schema** (`fontFamily`, `width`, `height`, `baseline`, `lineHeight`, `containerId`, `originalText`, `textAlign`, `verticalAlign`). The full field list and a verified Python builder template live in [`export-schema.md`](export-schema.md). Use it.
+
+Minimum viable text element for export:
 
 ```json
-[
-  {"type":"rectangle","id":"r1","x":120,"y":120,"width":200,"height":80,
-   "roundness":{"type":3},"backgroundColor":"#a5d8ff","fillStyle":"solid","strokeColor":"#4a9eed"},
-  {"type":"text","id":"r1_label","x":160,"y":146,"text":"Web App","fontSize":20,"strokeColor":"#1e1e1e"}
-]
+{
+  "type": "text", "id": "r1_label",
+  "x": 160, "y": 146, "width": 100, "height": 25,
+  "strokeColor": "#1e1e1e",
+  "text": "Web App", "originalText": "Web App",
+  "fontSize": 20, "fontFamily": 5,
+  "textAlign": "left", "verticalAlign": "top",
+  "baseline": 17, "containerId": null, "lineHeight": 1.25
+}
 ```
+
+Writing this by hand for every text element in a 100-element diagram is impractical. **Use the Python builder template in [`export-schema.md`](export-schema.md#builder-template--the-verified-recipe).** The error rate on hand-written full-schema JSON is too high to be worth attempting.
 
 Note: the text `x` is the **left edge**, not the centre. To centre a label inside a 200×80 shape positioned at `(120, 120)`:
 
@@ -321,7 +335,9 @@ If the user asks for a dark theme:
 ## Don'ts
 
 - Do not call `read_me` more than once per conversation — it returns the same content every time
-- Do not use the inline `label:` shortcut on shapes — it does not survive `export_to_excalidraw`. Always use standalone text elements.
+- Do not use the inline `label:` shortcut on shapes if you intend to export — it does not survive `export_to_excalidraw`. See [`export-schema.md`](export-schema.md)
+- Do not use minimal standalone text (just `text` + `fontSize` + `strokeColor`) for export-bound diagrams either — text without the full Excalidraw schema also gets stripped on export. See [`export-schema.md`](export-schema.md)
+- Do not declare a diagram done until you have opened the exported URL and seen the text with your own eyes — the inline render lies about export
 - Do not write coordinates straight from your head — lay out on a grid first, with the spacing constants
 - Do not break a spacing constant to "make it fit" — use a bigger camera instead
 - Do not patch coordinates one by one for a "more spacing" request — bump the constants and regenerate
