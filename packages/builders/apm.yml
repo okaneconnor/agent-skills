@@ -1,0 +1,17 @@
+name: builder-skills
+version: 1.0.0
+description: >
+  Meta-skills for building and authoring agent infrastructure — vendored from
+  anthropics/skills. mcp-builder guides creation of high-quality MCP (Model
+  Context Protocol) servers in Python (FastMCP) and Node/TypeScript.
+  skill-creator guides creation, validation, and packaging of new agent skills,
+  including evaluation tooling and benchmarking. No MCP server required.
+author: okaneconnor
+license: Apache-2.0
+target: all
+
+dependencies:
+  apm:
+    # Skills (vendored from anthropics/skills, Apache-2.0)
+    - okaneconnor/agent-skills/.github/skills/mcp-builder
+    - okaneconnor/agent-skills/.github/skills/skill-creator
