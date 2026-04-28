@@ -1,10 +1,10 @@
 name: agent-skills
-version: 2.2.0
+version: 2.3.0
 description: >
   A curated collection of agent skills for AI coding assistants — Jira story
   authoring via the Atlassian MCP, codebase architecture diagramming via the
-  Excalidraw MCP, and branch-scoped security review covering application code
-  and cloud / IaC (Azure, AWS, Kubernetes, Terraform). Install all bundles at
+  Excalidraw MCP, branch-scoped security review (app + cloud / IaC), and
+  meta-skills for authoring new skills and MCP servers. Install all bundles at
   once or pick individual ones.
 author: okaneconnor
 license: MIT
@@ -15,3 +15,4 @@ dependencies:
     - okaneconnor/agent-skills/packages/jira
     - okaneconnor/agent-skills/packages/diagramming
     - okaneconnor/agent-skills/packages/security
+    - okaneconnor/agent-skills/packages/builders
