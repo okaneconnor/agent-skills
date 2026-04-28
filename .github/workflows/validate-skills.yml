@@ -1,0 +1,46 @@
+name: Validate Agent Skills
+
+on:
+  pull_request:
+    paths:
+      - '.github/skills/**'
+      - '.github/scripts/validate_skills.py'
+      - '.github/workflows/validate-skills.yml'
+      - 'packages/**'
+      - 'apm.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/skills/**'
+      - '.github/scripts/validate_skills.py'
+      - '.github/workflows/validate-skills.yml'
+      - 'packages/**'
+      - 'apm.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate skills, bundles, root wiring
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Run validator unit tests
+        working-directory: .github/scripts
+        run: python3 -m unittest test_validate_skills -v
+
+      - name: Run validator on this repo
+        run: python3 .github/scripts/validate_skills.py

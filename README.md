@@ -136,11 +136,14 @@ APM installs skills to the directory your assistant expects (`.claude/skills/`, 
 
 ## Adding a new skill
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full author guide and the rules CI enforces. Quick summary:
+
 1. Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter (`name`, `description`).
-2. Add reference files under `.github/skills/<skill-name>/references/` if the skill needs supporting knowledge.
+2. Lead the body with `## When to Use`, keep it under 500 lines / ~5 000 tokens, and split detail into `references/` if needed.
 3. Add the skill to the relevant bundle's `dependencies.apm` list in `packages/<bundle>/apm.yml` (or create a new bundle).
 4. If the skill needs an MCP server, add it under `dependencies.mcp` in the same bundle's `apm.yml` and mirror the entry in `.vscode/mcp.json` so local development works.
 5. Update this README's skill table.
+6. Run the validator locally (`python3 .github/scripts/validate_skills.py`) — the same check runs in CI on every PR.
 
 > Tip: the vendored `skill-creator` skill in `packages/builders` walks through this end-to-end and includes an evaluation harness — invoke it with *"use the skill-creator skill to draft a new skill for X"*.
 

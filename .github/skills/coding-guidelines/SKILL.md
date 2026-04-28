@@ -7,6 +7,21 @@ description: Behavioural guidelines that combine KISS (keep it simple) and DRY (
 
 Five principles that bias toward shipping the smallest, clearest code that solves the actual problem. They cost a little speed for a lot of correctness — for genuinely trivial tasks, use judgement.
 
+## When to Use
+
+Use when writing or modifying code on the user's behalf:
+
+- New features, bug fixes, refactors, or scaffolding new modules
+- Reviewing your own diff before reporting "done"
+- Any time you're tempted to add a helper, a flag, or a layer of abstraction "just in case"
+- Any time the user pushes back with *"couldn't you just..."* — that's the signal that something was over-built and these principles weren't applied
+
+Do **not** invoke for:
+
+- Pure research / exploration where no code ships
+- Prose, documentation, or comms writing
+- Throwaway one-shot scripts the user has explicitly framed as disposable
+
 ## 1. KISS — Keep It Simple
 
 **Smallest code that meets the requirement. Nothing speculative.**
