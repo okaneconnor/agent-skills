@@ -8,16 +8,20 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
 .github/
 └── skills/
     ├── jira-skill/
-    └── excalidraw-diagram/
+    ├── excalidraw-diagram/
+    └── security-review/
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
 │   └── apm.yml
-└── diagramming/         ← Diagramming bundle (skill + Excalidraw MCP)
+├── diagramming/         ← Diagramming bundle (skill + Excalidraw MCP)
+│   ├── .apm/
+│   └── apm.yml
+└── security/            ← Security bundle (skill, no MCP required)
     ├── .apm/
     └── apm.yml
 .vscode/mcp.json         ← MCP server config for VS Code / Copilot
-apm.yml                  ← Top-level meta-package (installs both bundles)
+apm.yml                  ← Top-level meta-package (installs all bundles)
 ```
 
 ## Prerequisites
@@ -52,6 +56,12 @@ Skills are invoked automatically by the assistant based on relevance, or explici
 |---|---|
 | `excalidraw-diagram` | Analyses a software or infrastructure codebase and produces a cited, accurate Excalidraw diagram (architecture overview, auth flow, security model, data flow, deployment topology, sequence flow, module dependency). Every shape and arrow traces to a `file:line` in the repo before rendering. Uses **Excalidraw MCP**. |
 
+### Security
+
+| Skill | Description |
+|---|---|
+| `security-review` | Branch-scoped security review. Acts as a senior security engineer, reviews only the diff against `origin/HEAD`, and surfaces high-confidence (>80%) exploitable vulnerabilities across **application code** (SQLi, command injection, authn/authz, crypto and secrets, unsafe deserialisation, XSS, data exposure) **and cloud / IaC code** (Azure, AWS, Kubernetes, Terraform / Bicep / CloudFormation, GitHub Actions). Emits a structured markdown report with file, line, severity, exploit scenario, and fix. No MCP required. |
+
 ## Getting Started
 
 ### Option A — APM (recommended)
@@ -67,18 +77,20 @@ irm https://aka.ms/apm-windows | iex    # Windows
 
 **Install bundles:**
 ```bash
-# Everything (both bundles + all MCP servers)
+# Everything (all bundles + all MCP servers)
 apm install okaneconnor/agent-skills
 
 # Or pick a single bundle
 apm install okaneconnor/agent-skills/packages/jira
 apm install okaneconnor/agent-skills/packages/diagramming
+apm install okaneconnor/agent-skills/packages/security
 ```
 
 | Bundle | What's included |
 |---|---|
 | `packages/jira` | `jira-skill` + Atlassian MCP — draft, validate, and post Jira user stories from natural language. |
 | `packages/diagramming` | `excalidraw-diagram` skill + Excalidraw MCP — analyse a codebase and produce a cited architecture / auth / security / data-flow diagram. |
+| `packages/security` | `security-review` skill — branch-scoped security review covering app code and cloud / IaC (Azure, AWS, K8s, Terraform, GitHub Actions). No MCP required. |
 
 APM installs skills to the directory your assistant expects (`.claude/skills/`, `.cursor/skills/`, `.github/skills/`, `.agents/skills/`) and writes the required MCP servers into the matching MCP config file automatically.
 
@@ -91,8 +103,8 @@ APM installs skills to the directory your assistant expects (`.claude/skills/`, 
 1. Clone or fork this repository.
 2. Open the folder in your assistant of choice.
 3. The skills under `.github/skills/` are loaded automatically by Claude Code / Copilot / Cursor.
-4. Ensure the relevant MCP server is running (`.vscode/mcp.json` is pre-wired for both Atlassian and Excalidraw).
-5. Invoke a skill explicitly by name — e.g. *"use the excalidraw-diagram skill on `~/repos/foo` and draw the auth flow"*.
+4. Ensure the relevant MCP server is running if needed (`.vscode/mcp.json` is pre-wired for Atlassian and Excalidraw; the `security-review` skill needs no MCP server).
+5. Invoke a skill explicitly by name — e.g. *"use the excalidraw-diagram skill on `~/repos/foo` and draw the auth flow"*, or *"use the security-review skill on this branch"*.
 
 ## Adding a new skill
 

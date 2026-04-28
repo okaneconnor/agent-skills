@@ -1,0 +1,16 @@
+name: security-skills
+version: 1.0.0
+description: >
+  Branch-scoped security review skill — reviews the diff between the current
+  branch and origin/HEAD as a senior security engineer, surfacing only
+  high-confidence exploitable vulnerabilities across application code (SQLi,
+  authn/authz, crypto, deserialisation, XSS) and cloud / infrastructure code
+  (Azure, AWS, Kubernetes, Terraform, CI/CD). No MCP server required.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills
+    - okaneconnor/agent-skills/.github/skills/security-review
