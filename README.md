@@ -10,6 +10,7 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── jira-skill/
     ├── excalidraw-diagram/
     ├── security-review/
+    ├── coding-guidelines/
     ├── mcp-builder/        ← vendored from anthropics/skills (Apache-2.0)
     └── skill-creator/      ← vendored from anthropics/skills (Apache-2.0)
 packages/
@@ -22,7 +23,10 @@ packages/
 ├── security/            ← Security bundle (skill, no MCP required)
 │   ├── .apm/
 │   └── apm.yml
-└── builders/            ← Builder bundle (mcp-builder + skill-creator, no MCP required)
+├── builders/            ← Builder bundle (mcp-builder + skill-creator, no MCP required)
+│   ├── .apm/
+│   └── apm.yml
+└── coding/              ← Coding-discipline bundle (no MCP required)
     ├── .apm/
     └── apm.yml
 .vscode/mcp.json         ← MCP server config for VS Code / Copilot
@@ -76,6 +80,12 @@ Meta-skills for authoring agent infrastructure. Both are vendored from [anthropi
 | `mcp-builder` | Guide for creating high-quality MCP (Model Context Protocol) servers. Covers FastMCP (Python) and the official Node/TypeScript SDK, tool design, evaluation harness, and connection patterns. Use when building an MCP server to integrate an external API or service. |
 | `skill-creator` | Guide for creating, validating, packaging, and benchmarking new agent skills. Includes evaluation tooling (`run_eval.py`, `aggregate_benchmark.py`), a description-improvement loop, and a quick-validate script. Use when authoring a new skill or improving an existing one. |
 
+### Coding
+
+| Skill | Description |
+|---|---|
+| `coding-guidelines` | Behavioural guidelines that combine **KISS** and **DRY (with restraint)** with concrete rules for reducing common LLM coding mistakes — overcomplication, premature abstraction, ungrounded assumptions, scope creep, and silent edits to unrelated code. Five principles: KISS, DRY-with-restraint, Surface-don't-assume, Surgical Changes, Goal-Driven Execution. Use whenever the assistant is writing or modifying code. No MCP required. |
+
 ## Getting Started
 
 ### Option A — APM (recommended)
@@ -99,6 +109,7 @@ apm install okaneconnor/agent-skills/packages/jira
 apm install okaneconnor/agent-skills/packages/diagramming
 apm install okaneconnor/agent-skills/packages/security
 apm install okaneconnor/agent-skills/packages/builders
+apm install okaneconnor/agent-skills/packages/coding
 ```
 
 | Bundle | What's included |
@@ -107,6 +118,7 @@ apm install okaneconnor/agent-skills/packages/builders
 | `packages/diagramming` | `excalidraw-diagram` skill + Excalidraw MCP — analyse a codebase and produce a cited architecture / auth / security / data-flow diagram. |
 | `packages/security` | `security-review` skill — branch-scoped security review covering app code and cloud / IaC (Azure, AWS, K8s, Terraform, GitHub Actions). No MCP required. |
 | `packages/builders` | `mcp-builder` + `skill-creator` skills — vendored from anthropics/skills. Build new MCP servers and author/benchmark new skills. No MCP required. Apache-2.0. |
+| `packages/coding` | `coding-guidelines` skill — KISS / DRY-with-restraint / surgical changes / goal-driven execution. Loads when the assistant is writing or modifying code. No MCP required. |
 
 APM installs skills to the directory your assistant expects (`.claude/skills/`, `.cursor/skills/`, `.github/skills/`, `.agents/skills/`) and writes the required MCP servers into the matching MCP config file automatically.
 

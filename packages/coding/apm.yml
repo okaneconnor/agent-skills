@@ -1,0 +1,16 @@
+name: coding-skills
+version: 1.0.0
+description: >
+  Coding-discipline skills for AI coding assistants. coding-guidelines combines
+  KISS and DRY (with restraint) with concrete behavioural rules for reducing
+  common LLM coding mistakes — overcomplication, premature abstraction,
+  ungrounded assumptions, scope creep, and silent edits to unrelated code.
+  No MCP server required.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills
+    - okaneconnor/agent-skills/.github/skills/coding-guidelines
