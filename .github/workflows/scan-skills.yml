@@ -1,0 +1,140 @@
+name: Scan Skills (SkillSpector)
+
+on:
+  pull_request:
+    paths:
+      - '.github/skills/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skillspector-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skillspector:
+    name: SkillSpector security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install SkillSpector (latest from main)
+        run: uv tool install git+https://github.com/NVIDIA/skillspector.git
+
+      - name: Determine changed skills
+        id: changed
+        run: |
+          base='${{ github.event.pull_request.base.sha }}'
+          # Reduce changed paths under .github/skills/ to their top-level skill dir.
+          git diff --name-only "$base" HEAD -- '.github/skills/**' \
+            | sed -n 's#^\(\.github/skills/[^/]*\)/.*#\1#p' \
+            | sort -u > changed_skills.txt
+          count=$(grep -c . changed_skills.txt || true)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Changed skill directories ($count):"
+          cat changed_skills.txt
+
+      - name: Scan changed skills
+        if: steps.changed.outputs.count != '0'
+        env:
+          # Optional OpenAI LLM analysis. Absent -> scan runs static-only.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SKILLSPECTOR_MODEL: ${{ vars.SKILLSPECTOR_MODEL }}
+        run: |
+          set -uo pipefail
+          mkdir -p reports
+          BASELINE_DIR=.github/skillspector-baselines
+
+          # Choose static-only vs LLM-augmented analysis based on key presence.
+          if [ -n "${OPENAI_API_KEY:-}" ]; then
+            export SKILLSPECTOR_PROVIDER=openai
+            export SKILLSPECTOR_MODEL="${SKILLSPECTOR_MODEL:-gpt-4.1-mini}"
+            LLM_ARGS=""
+            LLM_MODE="OpenAI LLM (\`$SKILLSPECTOR_MODEL\`)"
+          else
+            LLM_ARGS="--no-llm"
+            LLM_MODE="static-only (\`--no-llm\`)"
+          fi
+
+          {
+            echo "# 🛡️ SkillSpector scan"
+            echo ""
+            echo "**Analysis mode:** $LLM_MODE"
+            echo ""
+            echo "Gate: a skill **fails** when its risk score is **> 50** (DO_NOT_INSTALL). Scan errors also fail."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          fail=0
+          while IFS= read -r skill; do
+            [ -z "$skill" ] && continue
+            name=$(basename "$skill")
+
+            # Apply a committed baseline for this skill if one exists
+            # (accepts known/reviewed findings; only NEW findings count).
+            baseline="$BASELINE_DIR/$name.json"
+            BASELINE_ARGS=""
+            base_note=""
+            if [ -f "$baseline" ]; then
+              BASELINE_ARGS="--baseline $baseline"
+              base_note=" _(baseline applied)_"
+            fi
+
+            echo "::group::SkillSpector: $skill"
+            # SINGLE scan per SkillSpector's CI contract: exit code = gate, JSON = detail.
+            skillspector scan "$skill" $LLM_ARGS $BASELINE_ARGS \
+              --format json --output "reports/$name.json"
+            code=$?
+            echo "::endgroup::"
+
+            # Pull documented fields from the JSON for the human report.
+            if [ -s "reports/$name.json" ]; then
+              risk=$(jq -r '.risk_score // "?"'        "reports/$name.json" 2>/dev/null || echo "?")
+              rec=$( jq -r '.recommendation // "UNKNOWN"' "reports/$name.json" 2>/dev/null || echo "UNKNOWN")
+            else
+              risk="?"; rec="ERROR"
+            fi
+
+            case "$code" in
+              0) badge="✅ PASS — risk ${risk} (${rec})" ;;
+              1) badge="❌ FAIL — risk ${risk} (${rec})"; fail=1 ;;
+              *) badge="⚠️ ERROR — scan failed (exit $code)"; fail=1 ;;
+            esac
+
+            {
+              echo ""
+              echo "<details><summary><h2>\`$name\` — $badge$base_note</h2></summary>"
+              echo ""
+              if [ -s "reports/$name.json" ]; then
+                echo '```json'
+                cat "reports/$name.json"
+                echo '```'
+              else
+                echo "_No report produced (scan errored). See job logs above._"
+              fi
+              echo ""
+              echo "</details>"
+            } >> "$GITHUB_STEP_SUMMARY"
+          done < changed_skills.txt
+
+          echo "fail=$fail"
+          exit "$fail"
+
+      - name: Upload scan reports
+        if: steps.changed.outputs.count != '0' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillspector-reports
+          path: reports/
+          if-no-files-found: ignore
+
+      - name: No skills changed
+        if: steps.changed.outputs.count == '0'
+        run: echo "No skill directories changed in this PR — nothing to scan."

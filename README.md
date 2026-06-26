@@ -147,6 +147,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full author guide and the rules C
 
 > Tip: the vendored `skill-creator` skill in `packages/builders` walks through this end-to-end and includes an evaluation harness — invoke it with *"use the skill-creator skill to draft a new skill for X"*.
 
+## CI checks on every PR
+
+Two workflows gate changes under `.github/skills/**` and `packages/**`:
+
+| Workflow | What it does |
+| --- | --- |
+| `validate-skills.yml` | Structural validation — frontmatter, naming, size, bundle wiring (`validate_skills.py`). |
+| `scan-skills.yml` | Security scan with [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector). Scans the skill directories changed in the PR — **one `--format json` scan per skill** (SkillSpector's documented CI contract: exit code gates, JSON is the detail). **Fails the job if any skill scores risk > 50 (DO_NOT_INSTALL)**, publishes a per-skill report to the run summary, and uploads the JSON as a downloadable artifact. Accepted findings can be suppressed per skill via `.github/skillspector-baselines/<skill>.json`. |
+
+The scan runs static-only (`--no-llm`) by default — deterministic, no secrets. To additionally enable LLM semantic analysis, set the repo secret `OPENAI_API_KEY` (optionally the variable `SKILLSPECTOR_MODEL`, defaulting to `gpt-4.1-mini`); the workflow falls back to static-only when the key is absent.
+
 ## Refreshing vendored skills
 
 `mcp-builder` and `skill-creator` are vendored verbatim from [anthropics/skills](https://github.com/anthropics/skills). To pull updates:
