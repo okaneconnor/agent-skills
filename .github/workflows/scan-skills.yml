@@ -52,6 +52,7 @@ jobs:
           set -uo pipefail
           mkdir -p reports
           BASELINE_DIR=.github/skillspector-baselines
+          DETAILS=$(mktemp)  # per-skill detail blocks, appended after the summary table
 
           # Choose static-only vs LLM-augmented analysis based on key presence.
           if [ -n "${OPENAI_API_KEY:-}" ]; then
@@ -64,12 +65,16 @@ jobs:
             LLM_MODE="static-only (\`--no-llm\`)"
           fi
 
+          # Report header + results table (rendered as markdown for humans;
+          # the machine-readable JSON is kept as the uploaded artifact).
           {
             echo "# 🛡️ SkillSpector scan"
             echo ""
-            echo "**Analysis mode:** $LLM_MODE"
+            echo "**Analysis mode:** $LLM_MODE  "
+            echo "**Gate:** a skill **fails** when its recommendation is \`DO_NOT_INSTALL\` (risk > 50), or the scan errors."
             echo ""
-            echo "Gate: a skill **fails** when its risk score is **> 50** (DO_NOT_INSTALL). Scan errors also fail."
+            echo "| Skill | Result | Risk | Severity | Issues | Suppressed |"
+            echo "| --- | --- | :-: | :-: | :-: | :-: |"
           } >> "$GITHUB_STEP_SUMMARY"
 
           fail=0
@@ -84,7 +89,7 @@ jobs:
             base_note=""
             if [ -f "$baseline" ]; then
               BASELINE_ARGS="--baseline $baseline"
-              base_note=" _(baseline applied)_"
+              base_note=" _(baseline)_"
             fi
 
             echo "::group::SkillSpector: $skill"
@@ -94,35 +99,63 @@ jobs:
             code=$?
             echo "::endgroup::"
 
-            # Pull documented fields from the JSON for the human report.
+            # Verdict fields live under .risk_assessment in the JSON schema.
             if [ -s "reports/$name.json" ]; then
-              risk=$(jq -r '.risk_score // "?"'        "reports/$name.json" 2>/dev/null || echo "?")
-              rec=$( jq -r '.recommendation // "UNKNOWN"' "reports/$name.json" 2>/dev/null || echo "UNKNOWN")
+              risk=$(jq -r '.risk_assessment.score // "?"'               "reports/$name.json" 2>/dev/null || echo "?")
+              sev=$( jq -r '.risk_assessment.severity // "?"'            "reports/$name.json" 2>/dev/null || echo "?")
+              rec=$( jq -r '.risk_assessment.recommendation // "UNKNOWN"' "reports/$name.json" 2>/dev/null || echo "UNKNOWN")
+              nissues=$(jq -r '(.issues // []) | length'                 "reports/$name.json" 2>/dev/null || echo "?")
+              nsupp=$(  jq -r '.suppressed_count // 0'                    "reports/$name.json" 2>/dev/null || echo "0")
             else
-              risk="?"; rec="ERROR"
+              risk="?"; sev="?"; rec="UNKNOWN"; nissues="?"; nsupp="0"
             fi
 
             case "$code" in
-              0) badge="✅ PASS — risk ${risk} (${rec})" ;;
-              1) badge="❌ FAIL — risk ${risk} (${rec})"; fail=1 ;;
-              *) badge="⚠️ ERROR — scan failed (exit $code)"; fail=1 ;;
+              0) icon="✅" ;;
+              1) icon="❌"; fail=1 ;;
+              *) icon="⚠️"; rec="ERROR (exit $code)"; fail=1 ;;
             esac
 
+            # One row in the summary table.
+            echo "| \`$name\`$base_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$GITHUB_STEP_SUMMARY"
+
+            # Collapsible per-skill detail, rendered from the JSON.
             {
               echo ""
-              echo "<details><summary><h2>\`$name\` — $badge$base_note</h2></summary>"
+              echo "<details><summary><strong>$icon \`$name\`</strong> — $rec (risk $risk, $sev)</summary>"
               echo ""
               if [ -s "reports/$name.json" ]; then
-                echo '```json'
-                cat "reports/$name.json"
-                echo '```'
+                echo "**Components scanned**"
+                echo ""
+                jq -r '
+                  if ((.components // []) | length) == 0 then "_none_"
+                  else (.components | map("- `\(.path)` — \(.type), \(.lines) lines, executable=\(.executable)") | join("\n"))
+                  end' "reports/$name.json" 2>/dev/null || echo "_could not parse components_"
+                echo ""
+                echo "**Issues**"
+                echo ""
+                jq -r '
+                  if ((.issues // []) | length) == 0 then "✅ _No issues found._"
+                  else
+                    "| Severity | Title | Component | Confidence |\n| --- | --- | --- | :-: |\n" +
+                    (.issues | map("| \(.severity // .level // "?") | \(.title // .message // .name // .description // "?") | \(.component // .path // .file // "-") | \(.confidence // "-") |") | join("\n"))
+                  end' "reports/$name.json" 2>/dev/null || echo "_could not parse issues_"
               else
                 echo "_No report produced (scan errored). See job logs above._"
               fi
               echo ""
               echo "</details>"
-            } >> "$GITHUB_STEP_SUMMARY"
+            } >> "$DETAILS"
           done < changed_skills.txt
+
+          # Append the detail blocks below the table.
+          {
+            echo ""
+            echo "## Per-skill detail"
+            cat "$DETAILS"
+            echo ""
+            echo "> Full JSON reports are attached as the **\`skillspector-reports\`** artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
 
           echo "fail=$fail"
           exit "$fail"
