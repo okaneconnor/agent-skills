@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write  # post the scan summary as a sticky PR comment
 
 concurrency:
   group: skillspector-${{ github.ref }}
@@ -19,12 +20,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Install SkillSpector (latest from main)
         run: uv tool install git+https://github.com/NVIDIA/skillspector.git
@@ -52,6 +53,8 @@ jobs:
           set -uo pipefail
           mkdir -p reports
           BASELINE_DIR=.github/skillspector-baselines
+          REPORT=skillspector-report.md   # full markdown report (feeds the run summary + PR comment)
+          : > "$REPORT"
           DETAILS=$(mktemp)  # per-skill detail blocks, appended after the summary table
 
           # Choose static-only vs LLM-augmented analysis based on key presence.
@@ -75,7 +78,7 @@ jobs:
             echo ""
             echo "| Skill | Result | Risk | Severity | Issues | Suppressed |"
             echo "| --- | --- | :-: | :-: | :-: | :-: |"
-          } >> "$GITHUB_STEP_SUMMARY"
+          } >> "$REPORT"
 
           fail=0
           while IFS= read -r skill; do
@@ -117,7 +120,7 @@ jobs:
             esac
 
             # One row in the summary table.
-            echo "| \`$name\`$base_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| \`$name\`$base_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$REPORT"
 
             # Collapsible per-skill detail, rendered from the JSON.
             {
@@ -155,18 +158,48 @@ jobs:
             cat "$DETAILS"
             echo ""
             echo "> Full JSON reports are attached as the **\`skillspector-reports\`** artifact."
-          } >> "$GITHUB_STEP_SUMMARY"
+          } >> "$REPORT"
+
+          # Mirror the report to the run summary; the next step posts it as a PR comment.
+          cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
 
           echo "fail=$fail"
           exit "$fail"
 
       - name: Upload scan reports
         if: steps.changed.outputs.count != '0' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: skillspector-reports
           path: reports/
           if-no-files-found: ignore
+
+      - name: Comment scan summary on PR
+        # Runs even when the scan fails, so the verdict is visible on the PR.
+        # Skipped for fork PRs, whose GITHUB_TOKEN cannot post comments.
+        if: always() && steps.changed.outputs.count != '0' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          if [ ! -s skillspector-report.md ]; then
+            echo "No report to post."; exit 0
+          fi
+          marker='<!-- skillspector-report -->'
+          { printf '%s\n\n' "$marker"; cat skillspector-report.md; } > comment.md
+          body="$(cat comment.md)"
+          # Sticky: update our previous comment if present, else create a new one.
+          existing=$(gh api "repos/$REPO/issues/$PR/comments?per_page=100" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" 2>/dev/null | head -n1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -f body="$body" >/dev/null
+            echo "Updated PR comment $existing"
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="$body" >/dev/null
+            echo "Created PR comment"
+          fi
 
       - name: No skills changed
         if: steps.changed.outputs.count == '0'
