@@ -1,0 +1,216 @@
+name: Scan Skills (SkillSpector)
+
+on:
+  pull_request:
+    paths:
+      - '.github/skills/**'
+
+permissions:
+  contents: read
+  pull-requests: write  # post the scan summary as a sticky PR comment
+
+concurrency:
+  group: skillspector-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skillspector:
+    name: SkillSpector security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install SkillSpector (latest from main)
+        run: uv tool install git+https://github.com/NVIDIA/skillspector.git
+
+      - name: Determine changed skills
+        id: changed
+        run: |
+          base='${{ github.event.pull_request.base.sha }}'
+          # Reduce changed paths under .github/skills/ to their top-level skill dir.
+          git diff --name-only "$base" HEAD -- '.github/skills/**' \
+            | sed -n 's#^\(\.github/skills/[^/]*\)/.*#\1#p' \
+            | sort -u > changed_skills.txt
+          count=$(grep -c . changed_skills.txt || true)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Changed skill directories ($count):"
+          cat changed_skills.txt
+
+      - name: Scan changed skills
+        if: steps.changed.outputs.count != '0'
+        env:
+          # Optional OpenAI LLM analysis. Absent -> scan runs static-only.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SKILLSPECTOR_MODEL: ${{ vars.SKILLSPECTOR_MODEL }}
+        run: |
+          set -uo pipefail
+          mkdir -p reports
+          BASELINE_DIR=.github/skillspector-baselines
+          REPORT=skillspector-report.md   # full markdown report (feeds the run summary + PR comment)
+          : > "$REPORT"
+          DETAILS=$(mktemp)  # per-skill detail blocks, appended after the summary table
+
+          # Choose static-only vs LLM-augmented analysis based on key presence.
+          if [ -n "${OPENAI_API_KEY:-}" ]; then
+            export SKILLSPECTOR_PROVIDER=openai
+            export SKILLSPECTOR_MODEL="${SKILLSPECTOR_MODEL:-gpt-4.1-mini}"
+            LLM_ARGS=""
+            LLM_MODE="OpenAI LLM (\`$SKILLSPECTOR_MODEL\`)"
+          else
+            LLM_ARGS="--no-llm"
+            LLM_MODE="static-only (\`--no-llm\`)"
+          fi
+
+          # Report header + results table (rendered as markdown for humans;
+          # the machine-readable JSON is kept as the uploaded artifact).
+          {
+            echo "# 🛡️ SkillSpector scan"
+            echo ""
+            echo "**Analysis mode:** $LLM_MODE  "
+            echo "**Gate:** a skill **fails** when its recommendation is \`DO_NOT_INSTALL\` (risk > 50), or the scan errors."
+            echo ""
+            echo "| Skill | Result | Risk | Severity | Issues | Suppressed |"
+            echo "| --- | --- | :-: | :-: | :-: | :-: |"
+          } >> "$REPORT"
+
+          fail=0
+          while IFS= read -r skill; do
+            [ -z "$skill" ] && continue
+            name=$(basename "$skill")
+
+            # A PR that deletes or renames a skill leaves a path that no longer
+            # exists on disk. Skip it (don't fail the gate on a removal).
+            if [ ! -d "$skill" ]; then
+              echo "Skipping $skill — removed in this PR."
+              echo "| \`$name\` | ➖ removed | - | - | - | - |" >> "$REPORT"
+              continue
+            fi
+
+            # Apply a committed baseline for this skill if one exists
+            # (accepts known/reviewed findings; only NEW findings count).
+            baseline="$BASELINE_DIR/$name.json"
+            BASELINE_ARGS=""
+            base_note=""
+            if [ -f "$baseline" ]; then
+              BASELINE_ARGS="--baseline $baseline"
+              base_note=" _(baseline)_"
+            fi
+
+            echo "::group::SkillSpector: $skill"
+            # SINGLE scan per SkillSpector's CI contract: exit code = gate, JSON = detail.
+            # $LLM_ARGS / $BASELINE_ARGS are intentionally unquoted (split into flags or expand to nothing).
+            # shellcheck disable=SC2086
+            skillspector scan "$skill" $LLM_ARGS $BASELINE_ARGS \
+              --format json --output "reports/$name.json"
+            code=$?
+            echo "::endgroup::"
+
+            # Verdict fields live under .risk_assessment in the JSON schema.
+            if [ -s "reports/$name.json" ]; then
+              risk=$(jq -r '.risk_assessment.score // "?"'               "reports/$name.json" 2>/dev/null || echo "?")
+              sev=$( jq -r '.risk_assessment.severity // "?"'            "reports/$name.json" 2>/dev/null || echo "?")
+              rec=$( jq -r '.risk_assessment.recommendation // "UNKNOWN"' "reports/$name.json" 2>/dev/null || echo "UNKNOWN")
+              nissues=$(jq -r '(.issues // []) | length'                 "reports/$name.json" 2>/dev/null || echo "?")
+              nsupp=$(  jq -r '.suppressed_count // 0'                    "reports/$name.json" 2>/dev/null || echo "0")
+            else
+              risk="?"; sev="?"; rec="UNKNOWN"; nissues="?"; nsupp="0"
+            fi
+
+            case "$code" in
+              0) icon="✅" ;;
+              1) icon="❌"; fail=1 ;;
+              *) icon="⚠️"; rec="ERROR (exit $code)"; fail=1 ;;
+            esac
+
+            # One row in the summary table.
+            echo "| \`$name\`$base_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$REPORT"
+
+            # Collapsible per-skill detail, rendered from the JSON.
+            {
+              echo ""
+              echo "<details><summary><strong>$icon \`$name\`</strong> — $rec (risk $risk, $sev)</summary>"
+              echo ""
+              if [ -s "reports/$name.json" ]; then
+                echo "**Components scanned**"
+                echo ""
+                jq -r '
+                  if ((.components // []) | length) == 0 then "_none_"
+                  else (.components | map("- `\(.path)` — \(.type), \(.lines) lines, executable=\(.executable)") | join("\n"))
+                  end' "reports/$name.json" 2>/dev/null || echo "_could not parse components_"
+                echo ""
+                echo "**Issues**"
+                echo ""
+                jq -r '
+                  if ((.issues // []) | length) == 0 then "✅ _No issues found._"
+                  else
+                    "| Severity | Title | Component | Confidence |\n| --- | --- | --- | :-: |\n" +
+                    (.issues | map("| \(.severity // .level // "?") | \(.title // .message // .name // .description // "?") | \(.component // .path // .file // "-") | \(.confidence // "-") |") | join("\n"))
+                  end' "reports/$name.json" 2>/dev/null || echo "_could not parse issues_"
+              else
+                echo "_No report produced (scan errored). See job logs above._"
+              fi
+              echo ""
+              echo "</details>"
+            } >> "$DETAILS"
+          done < changed_skills.txt
+
+          # Append the detail blocks below the table.
+          {
+            echo ""
+            echo "## Per-skill detail"
+            cat "$DETAILS"
+            echo ""
+            echo "> Full JSON reports are attached as the **\`skillspector-reports\`** artifact."
+          } >> "$REPORT"
+
+          # Mirror the report to the run summary; the next step posts it as a PR comment.
+          cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "fail=$fail"
+          exit "$fail"
+
+      - name: Upload scan reports
+        if: steps.changed.outputs.count != '0' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: skillspector-reports
+          path: reports/
+          if-no-files-found: ignore
+
+      - name: Comment scan summary on PR
+        # Runs even when the scan fails, so the verdict is visible on the PR.
+        # Skipped for fork PRs, whose GITHUB_TOKEN cannot post comments.
+        if: always() && steps.changed.outputs.count != '0' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          if [ ! -s skillspector-report.md ]; then
+            echo "No report to post."; exit 0
+          fi
+          marker='<!-- skillspector-report -->'
+          { printf '%s\n\n' "$marker"; cat skillspector-report.md; } > comment.md
+          body="$(cat comment.md)"
+          # Sticky: update our previous comment if present, else create a new one.
+          existing=$(gh api "repos/$REPO/issues/$PR/comments?per_page=100" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" 2>/dev/null | head -n1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -f body="$body" >/dev/null
+            echo "Updated PR comment $existing"
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="$body" >/dev/null
+            echo "Created PR comment"
+          fi
+
+      - name: No skills changed
+        if: steps.changed.outputs.count == '0'
+        run: echo "No skill directories changed in this PR — nothing to scan."
