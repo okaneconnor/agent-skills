@@ -154,7 +154,7 @@ Two workflows gate changes under `.github/skills/**` and `packages/**`:
 | Workflow | What it does |
 | --- | --- |
 | `validate-skills.yml` | Structural validation — frontmatter, naming, size, bundle wiring (`validate_skills.py`). |
-| `scan-skills.yml` | Security scan with [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector). Scans the skill directories changed in the PR — **one `--format json` scan per skill** (SkillSpector's documented CI contract: exit code gates, JSON is the detail). **Fails the job if any skill scores risk > 50 (DO_NOT_INSTALL)**, publishes a per-skill report to the run summary, and uploads the JSON as a downloadable artifact. Accepted findings can be suppressed per skill via `.github/skillspector-baselines/<skill>.json`. |
+| `scan-skills.yml` | Security scan with [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector). Scans the skill directories changed in the PR — **one `--format json` scan per skill** (SkillSpector's documented CI contract: exit code gates, JSON is the detail). **Fails the job if any skill scores risk > 50 (DO_NOT_INSTALL)**, renders a markdown report to the run summary **and as a sticky PR comment**, and uploads the JSON as a downloadable artifact. Static-only by default; runs LLM analysis when `OPENAI_API_KEY` is set. Accepted findings can be suppressed per skill via `.github/skillspector-baselines/<skill>.json`. |
 
 The scan runs static-only (`--no-llm`) by default — deterministic, no secrets. To additionally enable LLM semantic analysis, set the repo secret `OPENAI_API_KEY` (optionally the variable `SKILLSPECTOR_MODEL`, defaulting to `gpt-4.1-mini`); the workflow falls back to static-only when the key is absent.
 

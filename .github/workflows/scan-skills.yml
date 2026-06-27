@@ -85,6 +85,14 @@ jobs:
             [ -z "$skill" ] && continue
             name=$(basename "$skill")
 
+            # A PR that deletes or renames a skill leaves a path that no longer
+            # exists on disk. Skip it (don't fail the gate on a removal).
+            if [ ! -d "$skill" ]; then
+              echo "Skipping $skill — removed in this PR."
+              echo "| \`$name\` | ➖ removed | - | - | - | - |" >> "$REPORT"
+              continue
+            fi
+
             # Apply a committed baseline for this skill if one exists
             # (accepts known/reviewed findings; only NEW findings count).
             baseline="$BASELINE_DIR/$name.json"
@@ -97,6 +105,8 @@ jobs:
 
             echo "::group::SkillSpector: $skill"
             # SINGLE scan per SkillSpector's CI contract: exit code = gate, JSON = detail.
+            # $LLM_ARGS / $BASELINE_ARGS are intentionally unquoted (split into flags or expand to nothing).
+            # shellcheck disable=SC2086
             skillspector scan "$skill" $LLM_ARGS $BASELINE_ARGS \
               --format json --output "reports/$name.json"
             code=$?
