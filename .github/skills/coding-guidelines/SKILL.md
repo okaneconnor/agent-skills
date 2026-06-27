@@ -110,3 +110,4 @@ Strong success criteria let you work independently. Weak criteria (*"make it wor
 ## TL;DR
 
 > Smallest code that meets the success criteria. Verify assumptions instead of guessing. Surface tradeoffs instead of hiding them. Touch only what the task requires. Delete what you make obsolete.
+
