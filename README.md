@@ -18,7 +18,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── executing-plans/                  ← vendored from obra/superpowers (MIT)
     ├── subagent-driven-development/      ← vendored from obra/superpowers (MIT)
     ├── dispatching-parallel-agents/      ← vendored from obra/superpowers (MIT)
-    └── using-git-worktrees/              ← vendored from obra/superpowers (MIT)
+    ├── using-git-worktrees/              ← vendored from obra/superpowers (MIT)
+    └── test-driven-development/          ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -107,6 +108,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `subagent-driven-development` | Executes a plan by dispatching a fresh implementer subagent per task, a spec-compliance + code-quality review after each, and a broad whole-branch review at the end. Ships helper scripts (`sdd-workspace`, `task-brief`, `review-package`). |
 | `dispatching-parallel-agents` | Splits two or more independent problems (e.g. unrelated test failures) across concurrent subagents — one per problem domain, each with a tightly scoped prompt — then reviews and integrates the results and runs the full suite. |
 | `using-git-worktrees` | Ensures work happens in an isolated workspace: detects existing isolation, prefers the harness's native worktree tool, falls back to `git worktree`, then runs project setup and verifies a clean test baseline. |
+| `test-driven-development` | Strict red-green-refactor: write the failing test, watch it fail, write the minimal code to pass, refactor. Includes a guide to writing good tests and a table of the rationalisations agents use to skip the cycle. |
 
 ## Getting Started
 
@@ -205,7 +207,7 @@ done
 # under "Local modifications".
 ```
 
-The upstream license (Apache-2.0 or MIT) travels with each vendored skill folder. Do not modify upstream content — local additions belong in a sibling skill directory.
+The upstream license (Apache-2.0 or MIT) travels with each vendored skill folder. Do not modify upstream content — local additions belong in a sibling skill directory. The only exception is a validator-required frontmatter fix, recorded under "Local modifications" in that skill's `NOTICE.md` (see `CONTRIBUTING.md`).
 
 ## Learn More
 

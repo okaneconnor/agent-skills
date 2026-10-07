@@ -160,6 +160,8 @@ When pulling a skill in from an external repository (e.g. `anthropics/skills`):
 
 1. Copy the entire upstream skill directory into `.github/skills/<skill-name>/` verbatim, including `LICENSE.txt`. **Do not edit the upstream content** so future updates can be merged cleanly.
 
+   The one exception is a frontmatter fix the validator requires (for example, a `description` under the 80-character minimum). Keep it to the smallest change that passes, and record the original and new text under a `## Local modifications` heading in `NOTICE.md` so it can be re-applied after a refresh — see `.github/skills/test-driven-development/NOTICE.md`.
+
 2. Add a `NOTICE.md` next to `LICENSE.txt` citing the upstream repo, the path, and the commit SHA you copied from. Example:
 
    ```markdown
