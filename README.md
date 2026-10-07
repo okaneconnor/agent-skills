@@ -23,7 +23,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── systematic-debugging/             ← vendored from obra/superpowers (MIT)
     ├── verification-before-completion/   ← vendored from obra/superpowers (MIT)
     ├── requesting-code-review/           ← vendored from obra/superpowers (MIT)
-    └── receiving-code-review/            ← vendored from obra/superpowers (MIT)
+    ├── receiving-code-review/            ← vendored from obra/superpowers (MIT)
+    └── finishing-a-development-branch/   ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -117,6 +118,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `verification-before-completion` | Evidence before claims: run the verification command and read its output before saying anything is done, fixed, or passing — and before committing or opening a PR. |
 | `requesting-code-review` | Dispatches a code-reviewer subagent with precisely crafted context (what was built, requirements, base/head SHAs) to catch issues before they cascade. Ships the reviewer prompt template. |
 | `receiving-code-review` | Handles review feedback with technical rigour: read it fully, restate it, verify it against the codebase, push back with reasoning when it's wrong, and implement one item at a time — no performative agreement. |
+| `finishing-a-development-branch` | Wraps up a finished branch: verify the test suite, detect the environment and base branch, offer merge locally / push and open a PR / keep as-is, execute the choice, and clean up the worktree. |
 
 ## Getting Started
 
