@@ -22,7 +22,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── test-driven-development/          ← vendored from obra/superpowers (MIT)
     ├── systematic-debugging/             ← vendored from obra/superpowers (MIT)
     ├── verification-before-completion/   ← vendored from obra/superpowers (MIT)
-    └── requesting-code-review/           ← vendored from obra/superpowers (MIT)
+    ├── requesting-code-review/           ← vendored from obra/superpowers (MIT)
+    └── receiving-code-review/            ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -115,6 +116,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `systematic-debugging` | Four-phase root-cause process — investigation, pattern analysis, hypothesis and testing, implementation — with no fixes before the root cause is known. Supporting guides on root-cause tracing, defence in depth, and condition-based waiting, plus a test-polluter bisection script. |
 | `verification-before-completion` | Evidence before claims: run the verification command and read its output before saying anything is done, fixed, or passing — and before committing or opening a PR. |
 | `requesting-code-review` | Dispatches a code-reviewer subagent with precisely crafted context (what was built, requirements, base/head SHAs) to catch issues before they cascade. Ships the reviewer prompt template. |
+| `receiving-code-review` | Handles review feedback with technical rigour: read it fully, restate it, verify it against the codebase, push back with reasoning when it's wrong, and implement one item at a time — no performative agreement. |
 
 ## Getting Started
 
