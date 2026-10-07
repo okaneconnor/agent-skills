@@ -14,3 +14,4 @@ dependencies:
     # Skills (vendored from obra/superpowers, MIT)
     - okaneconnor/agent-skills/.github/skills/brainstorming
     - okaneconnor/agent-skills/.github/skills/writing-plans
+    - okaneconnor/agent-skills/.github/skills/executing-plans
