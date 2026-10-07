@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "scanner_version": "2.12.0",
+  "rules": [],
+  "fingerprints": [
+    {
+      "hash": "sha256:e9c9ad8f6e815df187e8be4b0308967d2cd4f5d72622d6899a07f4671952d61e",
+      "rule_id": "E4",
+      "file": "defense-in-depth.md",
+      "reason": "Reviewed: benign pattern matches in documentation (macOS code-signing diagnostic example, debug-instrumentation guidance, timeout anti-pattern wording, static-parser span limit). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:782ae3ebc0032c69b7ba704f382a838b5a3f7c8e70372d87205a64ced69c5ee8",
+      "rule_id": "EA4",
+      "file": "condition-based-waiting.md",
+      "reason": "Reviewed: benign pattern matches in documentation (macOS code-signing diagnostic example, debug-instrumentation guidance, timeout anti-pattern wording, static-parser span limit). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:f28ba8f2f0920adfdbbe9cf21c232fbaf771d90e2bb1cc66b694c0e061bb2569",
+      "rule_id": "PE3",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation (macOS code-signing diagnostic example, debug-instrumentation guidance, timeout anti-pattern wording, static-parser span limit). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:12175d08bc32c5b7d3e1d76a455df2654e7568bf88c56f14b0ff39d1b8e26a6b",
+      "rule_id": "PE3",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation (macOS code-signing diagnostic example, debug-instrumentation guidance, timeout anti-pattern wording, static-parser span limit). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:a4ce0e9b3a02e2b7c7e7e22cb576d00bd46bcdc613e0be07cd872a24526c8447",
+      "rule_id": "AE1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation (macOS code-signing diagnostic example, debug-instrumentation guidance, timeout anti-pattern wording, static-parser span limit). See NOTICE.md."
+    }
+  ]
+}
