@@ -74,13 +74,14 @@ jobs:
             echo "# 🛡️ SkillSpector scan"
             echo ""
             echo "**Analysis mode:** $LLM_MODE  "
-            echo "**Gate:** a skill **fails** when its recommendation is \`DO_NOT_INSTALL\` (risk > 50), or the scan errors."
+            echo "**Gate:** a skill **fails** when its recommendation is \`DO_NOT_INSTALL\` (risk > 50), or the scan errors. If the LLM provider fails (rate limit, quota, outage), that skill is re-scanned static-only and gated on that."
             echo ""
             echo "| Skill | Result | Risk | Severity | Issues | Suppressed |"
             echo "| --- | --- | :-: | :-: | :-: | :-: |"
           } >> "$REPORT"
 
           fail=0
+          llm_fallbacks=0
           while IFS= read -r skill; do
             [ -z "$skill" ] && continue
             name=$(basename "$skill")
@@ -106,11 +107,39 @@ jobs:
             echo "::group::SkillSpector: $skill"
             # SINGLE scan per SkillSpector's CI contract: exit code = gate, JSON = detail.
             # $LLM_ARGS / $BASELINE_ARGS are intentionally unquoted (split into flags or expand to nothing).
+            # Actions runs this step under `bash -e`: capture the exit code with `||`
+            # so a failing scan is recorded in the report instead of aborting the loop.
+            code=0
             # shellcheck disable=SC2086
             skillspector scan "$skill" $LLM_ARGS $BASELINE_ARGS \
-              --format json --output "reports/$name.json"
-            code=$?
+              --format json --output "reports/$name.json" || code=$?
             echo "::endgroup::"
+
+            # An LLM provider failure (rate limit, exhausted quota, bad key, outage)
+            # is not a verdict on the skill: SkillSpector records it as a fatal
+            # `llm_*` ledger exception and exits 2. Re-scan static-only — the same
+            # gate used when no key is configured — keep the failed LLM report as
+            # an artifact, and flag the row so the downgrade stays visible.
+            llm_err=""
+            llm_note=""
+            if [ "$code" = "2" ] && [ -z "$LLM_ARGS" ] && [ -s "reports/$name.json" ]; then
+              llm_err=$(jq -r '[.analysis_completeness.ledger_exceptions[]?
+                  | select(.fatal == true and ((.reason_code // "") | startswith("llm_")))
+                  | (.error_class // .reason_code)] | unique | join(", ")' \
+                "reports/$name.json" 2>/dev/null || true)
+              if [ -n "$llm_err" ]; then
+                mv "reports/$name.json" "reports/$name.llm-failed.json"
+                echo "::warning title=SkillSpector LLM unavailable::$name — $llm_err; falling back to static-only analysis"
+                echo "::group::SkillSpector (static-only fallback): $skill"
+                code=0
+                # shellcheck disable=SC2086
+                skillspector scan "$skill" --no-llm $BASELINE_ARGS \
+                  --format json --output "reports/$name.json" || code=$?
+                echo "::endgroup::"
+                llm_note=" ⚠️ _static-only (LLM failed)_"
+                llm_fallbacks=$((llm_fallbacks + 1))
+              fi
+            fi
 
             # Verdict fields live under .risk_assessment in the JSON schema.
             if [ -s "reports/$name.json" ]; then
@@ -130,13 +159,17 @@ jobs:
             esac
 
             # One row in the summary table.
-            echo "| \`$name\`$base_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$REPORT"
+            echo "| \`$name\`$base_note$llm_note | $icon $rec | $risk | $sev | $nissues | $nsupp |" >> "$REPORT"
 
             # Collapsible per-skill detail, rendered from the JSON.
             {
               echo ""
               echo "<details><summary><strong>$icon \`$name\`</strong> — $rec (risk $risk, $sev)</summary>"
               echo ""
+              if [ -n "$llm_err" ]; then
+                echo "> ⚠️ LLM analysis failed (\`$llm_err\`), so this verdict is from **static-only** analysis. The failed LLM report is in the artifact as \`$name.llm-failed.json\`."
+                echo ""
+              fi
               if [ -s "reports/$name.json" ]; then
                 echo "**Components scanned**"
                 echo ""
@@ -163,6 +196,10 @@ jobs:
 
           # Append the detail blocks below the table.
           {
+            if [ "$llm_fallbacks" -gt 0 ]; then
+              echo ""
+              echo "> ⚠️ **LLM analysis was unavailable for $llm_fallbacks skill(s)** (OpenAI rate limit, quota, or outage). Those rows were gated on static-only analysis, the same gate used when \`OPENAI_API_KEY\` is not set. Check the key's quota and re-run for LLM coverage."
+            fi
             echo ""
             echo "## Per-skill detail"
             cat "$DETAILS"
