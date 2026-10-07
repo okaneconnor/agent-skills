@@ -19,7 +19,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── subagent-driven-development/      ← vendored from obra/superpowers (MIT)
     ├── dispatching-parallel-agents/      ← vendored from obra/superpowers (MIT)
     ├── using-git-worktrees/              ← vendored from obra/superpowers (MIT)
-    └── test-driven-development/          ← vendored from obra/superpowers (MIT)
+    ├── test-driven-development/          ← vendored from obra/superpowers (MIT)
+    └── systematic-debugging/             ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -109,6 +110,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `dispatching-parallel-agents` | Splits two or more independent problems (e.g. unrelated test failures) across concurrent subagents — one per problem domain, each with a tightly scoped prompt — then reviews and integrates the results and runs the full suite. |
 | `using-git-worktrees` | Ensures work happens in an isolated workspace: detects existing isolation, prefers the harness's native worktree tool, falls back to `git worktree`, then runs project setup and verifies a clean test baseline. |
 | `test-driven-development` | Strict red-green-refactor: write the failing test, watch it fail, write the minimal code to pass, refactor. Includes a guide to writing good tests and a table of the rationalisations agents use to skip the cycle. |
+| `systematic-debugging` | Four-phase root-cause process — investigation, pattern analysis, hypothesis and testing, implementation — with no fixes before the root cause is known. Supporting guides on root-cause tracing, defence in depth, and condition-based waiting, plus a test-polluter bisection script. |
 
 ## Getting Started
 
