@@ -24,3 +24,4 @@ dependencies:
     - okaneconnor/agent-skills/.github/skills/requesting-code-review
     - okaneconnor/agent-skills/.github/skills/receiving-code-review
     - okaneconnor/agent-skills/.github/skills/finishing-a-development-branch
+    - okaneconnor/agent-skills/.github/skills/writing-skills

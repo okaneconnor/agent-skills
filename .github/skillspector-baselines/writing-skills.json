@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "scanner_version": "2.12.0",
+  "rules": [],
+  "fingerprints": [
+    {
+      "hash": "sha256:ac9c555214e7811b97635f07f4c0e42345ff8074c4e956e4631e99db7d5fc4a0",
+      "rule_id": "AS3",
+      "file": "NOTICE.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:c547d9271b67764b63a31d9b115a3357ff6181a6248419802c446d15f7dec6b9",
+      "rule_id": "AS3",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:9b5557ef50aeba7fcf87be6fb8eac3595455cb0420b3a8c5436350394412f2d8",
+      "rule_id": "AS3",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:c7dd42164d1c9ff1ab77ba4d2e32b70198ce42c85b0ecb9ae40f71d6a55d9b83",
+      "rule_id": "AS1",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:c030dab5c35ef49bcdcd37ae7d6cafd2ec0e37320dd249bd1e9555f1e5e36e77",
+      "rule_id": "AS1",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:5875b0b5e682bdfae9fcb7635a8c8f9c2b40a0ba7af2eebc850ce74fd7b6470b",
+      "rule_id": "AS1",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:f5ead7305a177cda4b3f33066f00bc72286a07f9121f71578df97d24ca6294be",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:ce076cec48bf990688aedfd5c474844305ed58562b4a2c9ecea600a510e066ef",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:cff9d13aa92ee4522c294ff447a3dcc24d67108e83524675a1449908a82b3fa7",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:053dd5ca348ca89483ae42660eb0fe08c8acae38aa16d1437a658b9cb19606a3",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:6880c74a310c3464978cf65e5d6c5f201f8ceaecf7d33d77bf06c342d9efa260",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:ed330471673196c05573ac8daa38f5d5a58c96677a9ce1452845debc2c8ce133",
+      "rule_id": "AS3",
+      "file": "examples/CLAUDE_MD_TESTING.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:1ca03a4631c178cc969f400c7db26a1c82c88cc1dc6a12296de71d507e36b0fe",
+      "rule_id": "RA1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:4d2349526f97027b131b235a869c97fcf5d1be2d9761371a8ba01fb6bc3d83a1",
+      "rule_id": "RA1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:5aa42ec263acf7ef635958f39a6a0cf73ba2a5d7569fe72cfbe763bb17b8531a",
+      "rule_id": "RA1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:f257187d542615759c3181c9ada20a3fbd594f4fe8e61280f08d9dd5f4fbee89",
+      "rule_id": "RA1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:0db27fea723f237c4b09f13529f3c4049620e9857f1cde6fdf926f968dca6c18",
+      "rule_id": "RA1",
+      "file": "anthropic-best-practices.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:632faba295aee74dae73f561c937c16768577b05282161b3d5ce169c5bd3cb5e",
+      "rule_id": "RA1",
+      "file": "testing-skills-with-subagents.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:52b62f1ab7929f3d1724706309513c23c7b656de1ac787bcc730a0bfd346938f",
+      "rule_id": "RA1",
+      "file": "testing-skills-with-subagents.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:3d07c3371e60f970bd43be75d9745e026772a76cb09b8891ea45321f04747b5c",
+      "rule_id": "RA1",
+      "file": "testing-skills-with-subagents.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:695e06fb0548160c355fc04ebfd654b073feac7d3e98d480c5becfe544df1912",
+      "rule_id": "RA1",
+      "file": "testing-skills-with-subagents.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:4dcf2b95e30f3eb88a5e679649c2d0328054368272ff5c64afe0dbb52590623a",
+      "rule_id": "AE1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:e06dfcea808da2e80a3f178ea5f88fde874cb574abbc7a1878cf2ae4ff73feb1",
+      "rule_id": "AE1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:1b6725aae87a7e3b6dbfe19890c8b03be4de43ed69744d6f0aed5508efa075c7",
+      "rule_id": "AE1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:29a167099c9be74740afc3548ea6e5e2503262867a50840ed12aaf1db78e0a4d",
+      "rule_id": "AE1",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches in documentation about authoring skills ('write/edit skill' wording, example CLAUDE.md variants that list ~/.claude/skills, static-parser span limits). See NOTICE.md."
+    }
+  ]
+}
