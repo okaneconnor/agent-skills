@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "scanner_version": "2.12.0",
+  "rules": [],
+  "fingerprints": [
+    {
+      "hash": "sha256:efc6501dccefb4e501de3d86115034f94b6aae197facf9672bad76de377ea50d",
+      "rule_id": "LP3",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:9518ea379e4bfb550e61abd6b7e3411c3024fd7b659c34d2a518b1a91ace488c",
+      "rule_id": "P2",
+      "file": "scripts/server.cjs",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:f54537844756c70d228dbb6a00476dc55959d0c25c7340293a2b6854e289a4bd",
+      "rule_id": "RA2",
+      "file": "SKILL.md",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:7120f1b9aa7a0a06a92a3d14d851d99c65e257a1d3f4777468fb15b74f35c112",
+      "rule_id": "RA2",
+      "file": "scripts/start-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:5f815adf8f625cf23859ecf55735e748b23efee57ca1abe7fa8c31e1be529cf5",
+      "rule_id": "RA2",
+      "file": "scripts/start-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:bdfb0ef4f03dfc7e4e3191c5593d2a5dc6f63ef45912e496a2fa08bc2c6f958a",
+      "rule_id": "RA2",
+      "file": "scripts/start-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:427affe4dbccf13da551c8997db8777e3b4378dc536d711dd477d789bf312565",
+      "rule_id": "RA2",
+      "file": "scripts/start-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:0271efd60ad65438d83ccb64ee43bcaac6519dcca434789d51d4f641359d1b53",
+      "rule_id": "RA2",
+      "file": "scripts/start-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    },
+    {
+      "hash": "sha256:aa39719ad3dd4638181d67c08abc8087af746c4eaf7828492e2931d8726a60d8",
+      "rule_id": "TM1",
+      "file": "scripts/stop-server.sh",
+      "reason": "Reviewed: benign pattern matches (local 127.0.0.1 preview server lifecycle, HTML template placeholder, checklist wording). See NOTICE.md."
+    }
+  ]
+}

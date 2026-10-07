@@ -13,15 +13,23 @@ findings (not present in the baseline) are reported.
 
 ## Creating / updating a baseline
 
-Generate a baseline by scanning the skill and saving the report, then commit it:
+Generate a baseline with SkillSpector's `baseline` command, then commit it:
 
 ```bash
 uv tool install git+https://github.com/NVIDIA/skillspector.git   # if not installed
 
 # Replace <skill> with the directory name, e.g. mcp-builder
+skillspector baseline .github/skills/<skill> --no-llm \
+  --reason "Reviewed: <why these findings are acceptable>" \
+  --output .github/skillspector-baselines/<skill>.json
+
+# Confirm the gate now passes (exit 0, findings reported as suppressed)
 skillspector scan .github/skills/<skill> --no-llm \
-  --format json --output .github/skillspector-baselines/<skill>.json
+  --baseline .github/skillspector-baselines/<skill>.json
 ```
+
+Use `skillspector baseline`, not `skillspector scan --format json`: a scan report
+is not a baseline file, and passing one to `--baseline` suppresses nothing.
 
 Review the file before committing — you are explicitly accepting every finding it
 contains. Re-run the command to refresh it when the skill changes and new findings

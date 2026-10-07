@@ -12,7 +12,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── security-review/
     ├── coding-guidelines/
     ├── mcp-builder/        ← vendored from anthropics/skills (Apache-2.0)
-    └── skill-creator/      ← vendored from anthropics/skills (Apache-2.0)
+    ├── skill-creator/      ← vendored from anthropics/skills (Apache-2.0)
+    └── brainstorming/                    ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -26,7 +27,10 @@ packages/
 ├── builders/            ← Builder bundle (mcp-builder + skill-creator, no MCP required)
 │   ├── .apm/
 │   └── apm.yml
-└── coding/              ← Coding-discipline bundle (no MCP required)
+├── coding/              ← Coding-discipline bundle (no MCP required)
+│   ├── .apm/
+│   └── apm.yml
+└── workflow/            ← Development-workflow bundle (vendored from obra/superpowers, no MCP required)
     ├── .apm/
     └── apm.yml
 .vscode/mcp.json         ← MCP server config for VS Code / Copilot
@@ -86,6 +90,14 @@ Meta-skills for authoring agent infrastructure. Both are vendored from [anthropi
 |---|---|
 | `coding-guidelines` | Behavioural guidelines that combine **KISS** and **DRY (with restraint)** with concrete rules for reducing common LLM coding mistakes — overcomplication, premature abstraction, ungrounded assumptions, scope creep, and silent edits to unrelated code. Five principles: KISS, DRY-with-restraint, Surface-don't-assume, Surgical Changes, Goal-Driven Execution. Use whenever the assistant is writing or modifying code. No MCP required. |
 
+### Workflow
+
+Development-workflow skills vendored from [obra/superpowers](https://github.com/obra/superpowers) under its MIT license — see `LICENSE.txt` and `NOTICE.md` inside each skill directory. They ship as plain skills **without the Superpowers plugin harness**: no `SessionStart` hook and no `using-superpowers` bootstrap forcing a skill check before every response, so each skill loads only when its own description matches the task. Upstream text still names siblings as `superpowers:<skill>`; here that is simply the skill `<skill>` from this bundle. No MCP required.
+
+| Skill | Description |
+|---|---|
+| `brainstorming` | Turns an idea into an approved design before any code is written. Sizes how much process the request needs, pins down intent one focused question at a time, proposes 2–3 approaches with a recommendation, and writes the agreed spec to `docs/superpowers/specs/`. Optional local browser "visual companion" for mockups. |
+
 ## Getting Started
 
 ### Option A — APM (recommended)
@@ -110,6 +122,7 @@ apm install okaneconnor/agent-skills/packages/diagramming
 apm install okaneconnor/agent-skills/packages/security
 apm install okaneconnor/agent-skills/packages/builders
 apm install okaneconnor/agent-skills/packages/coding
+apm install okaneconnor/agent-skills/packages/workflow
 ```
 
 | Bundle | What's included |
@@ -119,6 +132,7 @@ apm install okaneconnor/agent-skills/packages/coding
 | `packages/security` | `security-review` skill — branch-scoped security review covering app code and cloud / IaC (Azure, AWS, K8s, Terraform, GitHub Actions). No MCP required. |
 | `packages/builders` | `mcp-builder` + `skill-creator` skills — vendored from anthropics/skills. Build new MCP servers and author/benchmark new skills. No MCP required. Apache-2.0. |
 | `packages/coding` | `coding-guidelines` skill — KISS / DRY-with-restraint / surgical changes / goal-driven execution. Loads when the assistant is writing or modifying code. No MCP required. |
+| `packages/workflow` | Development-workflow skills from the **Workflow** table above — vendored from obra/superpowers, without the plugin harness. No MCP required. MIT. |
 
 APM installs skills to the directory your assistant expects (`.claude/skills/`, `.cursor/skills/`, `.github/skills/`, `.agents/skills/`) and writes the required MCP servers into the matching MCP config file automatically.
 
@@ -169,7 +183,19 @@ cp -R /tmp/anthropics-skills/skills/skill-creator/. .github/skills/skill-creator
 # Then bump the commit SHA in NOTICE.md inside each skill directory.
 ```
 
-The Apache-2.0 license travels with each vendored skill folder. Do not modify upstream content — local additions belong in a sibling skill directory.
+The Workflow skills are vendored from [obra/superpowers](https://github.com/obra/superpowers). Every one carries a `NOTICE.md` naming that upstream, so refresh them together:
+
+```bash
+git clone --depth=1 https://github.com/obra/superpowers.git /tmp/superpowers
+for notice in $(grep -l "obra/superpowers" .github/skills/*/NOTICE.md); do
+  skill=$(basename "$(dirname "$notice")")
+  cp -R "/tmp/superpowers/skills/$skill/." ".github/skills/$skill/"
+done
+# Then bump the commit SHA in each NOTICE.md and re-apply anything it lists
+# under "Local modifications".
+```
+
+The upstream license (Apache-2.0 or MIT) travels with each vendored skill folder. Do not modify upstream content — local additions belong in a sibling skill directory.
 
 ## Learn More
 
@@ -178,3 +204,4 @@ The Apache-2.0 license travels with each vendored skill folder. Do not modify up
 - [Excalidraw](https://excalidraw.com)
 - [Agent Skills Specification](https://agentskills.io/specification)
 - [Anthropic Skills (upstream for `mcp-builder`, `skill-creator`)](https://github.com/anthropics/skills)
+- [Superpowers (upstream for the Workflow skills)](https://github.com/obra/superpowers)
