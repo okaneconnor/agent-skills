@@ -1,0 +1,15 @@
+name: workflow-skills
+version: 1.0.0
+description: >
+  Development-workflow skills vendored from obra/superpowers, shipped as plain
+  skills without the Superpowers plugin harness (no SessionStart hook, no
+  using-superpowers bootstrap). Each skill loads only when its own description
+  matches the task. No MCP server required.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills (vendored from obra/superpowers, MIT)
+    - okaneconnor/agent-skills/.github/skills/brainstorming
