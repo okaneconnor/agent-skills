@@ -1,0 +1,58 @@
+# =============================================================================
+# Terraform Apply Template
+# Applies a previously created plan
+# =============================================================================
+
+parameters:
+  - name: workingDirectory
+    type: string
+  - name: serviceConnection
+    type: string
+  - name: environment
+    type: string
+  - name: backendServiceConnection
+    type: string
+  - name: backendResourceGroup
+    type: string
+  - name: backendStorageAccount
+    type: string
+  - name: backendContainer
+    type: string
+    default: 'tfstate'
+  - name: backendKey
+    type: string
+
+steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Plan Artifact'
+    inputs:
+      buildType: 'current'
+      artifactName: 'tfplan-${{ parameters.environment }}'
+      targetPath: '${{ parameters.workingDirectory }}'
+
+  - template: terraform-init.yml
+    parameters:
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      backendServiceConnection: '${{ parameters.backendServiceConnection }}'
+      backendResourceGroup: '${{ parameters.backendResourceGroup }}'
+      backendStorageAccount: '${{ parameters.backendStorageAccount }}'
+      backendContainer: '${{ parameters.backendContainer }}'
+      backendKey: '${{ parameters.backendKey }}'
+
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Apply'
+    inputs:
+      provider: 'azurerm'
+      command: 'apply'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      environmentServiceNameAzureRM: '${{ parameters.serviceConnection }}'
+      commandOptions: 'tfplan'
+
+  - task: Bash@3
+    displayName: 'Show Outputs'
+    inputs:
+      targetType: 'inline'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      script: |
+        echo "## Terraform Outputs for ${{ parameters.environment }}"
+        terraform output -json

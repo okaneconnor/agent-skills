@@ -1,0 +1,37 @@
+# =============================================================================
+# Terraform Init Template
+# Initializes Terraform with backend configuration
+# =============================================================================
+
+parameters:
+  - name: workingDirectory
+    type: string
+  - name: backendServiceConnection
+    type: string
+  - name: backendResourceGroup
+    type: string
+  - name: backendStorageAccount
+    type: string
+  - name: backendContainer
+    type: string
+    default: 'tfstate'
+  - name: backendKey
+    type: string
+
+steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 'latest'
+
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Init'
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      backendServiceArm: '${{ parameters.backendServiceConnection }}'
+      backendAzureRmResourceGroupName: '${{ parameters.backendResourceGroup }}'
+      backendAzureRmStorageAccountName: '${{ parameters.backendStorageAccount }}'
+      backendAzureRmContainerName: '${{ parameters.backendContainer }}'
+      backendAzureRmKey: '${{ parameters.backendKey }}'

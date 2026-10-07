@@ -1,0 +1,16 @@
+name: azure-skills
+version: 1.0.0
+description: >
+  Azure infrastructure skills. azure-terraform-infrastructure generates an
+  Azure Landing Zone with Terraform following the Microsoft Cloud Adoption
+  Framework — hub-spoke networking, AKS, VMs, Key Vault, Azure Firewall,
+  monitoring, and Azure DevOps plan → approve → apply pipelines — from a
+  bundled set of module and environment templates. No MCP server required.
+author: okaneconnor
+license: MIT
+target: all
+
+dependencies:
+  apm:
+    # Skills
+    - okaneconnor/agent-skills/.github/skills/azure-terraform-infrastructure

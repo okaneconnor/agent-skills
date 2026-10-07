@@ -1,0 +1,68 @@
+# =============================================================================
+# Terraform Plan Template
+# Runs terraform plan and publishes artifact
+# =============================================================================
+
+parameters:
+  - name: workingDirectory
+    type: string
+  - name: serviceConnection
+    type: string
+  - name: environment
+    type: string
+  - name: backendServiceConnection
+    type: string
+  - name: backendResourceGroup
+    type: string
+  - name: backendStorageAccount
+    type: string
+  - name: backendContainer
+    type: string
+    default: 'tfstate'
+  - name: backendKey
+    type: string
+  - name: additionalArgs
+    type: string
+    default: ''
+
+steps:
+  - template: terraform-init.yml
+    parameters:
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      backendServiceConnection: '${{ parameters.backendServiceConnection }}'
+      backendResourceGroup: '${{ parameters.backendResourceGroup }}'
+      backendStorageAccount: '${{ parameters.backendStorageAccount }}'
+      backendContainer: '${{ parameters.backendContainer }}'
+      backendKey: '${{ parameters.backendKey }}'
+
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Plan'
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      environmentServiceNameAzureRM: '${{ parameters.serviceConnection }}'
+      commandOptions: '-out=tfplan ${{ parameters.additionalArgs }}'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Plan Artifact'
+    inputs:
+      targetPath: '${{ parameters.workingDirectory }}/tfplan'
+      artifact: 'tfplan-${{ parameters.environment }}'
+      publishLocation: 'pipeline'
+
+  - task: Bash@3
+    displayName: 'Show Plan Summary'
+    inputs:
+      targetType: 'inline'
+      workingDirectory: '${{ parameters.workingDirectory }}'
+      script: |
+        echo "## Terraform Plan Summary for ${{ parameters.environment }}" >> $(System.DefaultWorkingDirectory)/plan-summary.md
+        terraform show -no-color tfplan >> $(System.DefaultWorkingDirectory)/plan-summary.md
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Plan Summary'
+    inputs:
+      targetPath: '$(System.DefaultWorkingDirectory)/plan-summary.md'
+      artifact: 'plan-summary-${{ parameters.environment }}'
+      publishLocation: 'pipeline'
