@@ -18,3 +18,4 @@ dependencies:
     - okaneconnor/agent-skills/.github/skills/subagent-driven-development
     - okaneconnor/agent-skills/.github/skills/dispatching-parallel-agents
     - okaneconnor/agent-skills/.github/skills/using-git-worktrees
+    - okaneconnor/agent-skills/.github/skills/test-driven-development
