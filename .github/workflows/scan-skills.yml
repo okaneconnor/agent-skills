@@ -106,10 +106,12 @@ jobs:
             echo "::group::SkillSpector: $skill"
             # SINGLE scan per SkillSpector's CI contract: exit code = gate, JSON = detail.
             # $LLM_ARGS / $BASELINE_ARGS are intentionally unquoted (split into flags or expand to nothing).
+            # Actions runs this step under `bash -e`: capture the exit code with `||`
+            # so a failing scan is recorded in the report instead of aborting the loop.
+            code=0
             # shellcheck disable=SC2086
             skillspector scan "$skill" $LLM_ARGS $BASELINE_ARGS \
-              --format json --output "reports/$name.json"
-            code=$?
+              --format json --output "reports/$name.json" || code=$?
             echo "::endgroup::"
 
             # Verdict fields live under .risk_assessment in the JSON schema.
