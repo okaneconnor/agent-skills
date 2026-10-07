@@ -13,7 +13,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── coding-guidelines/
     ├── mcp-builder/        ← vendored from anthropics/skills (Apache-2.0)
     ├── skill-creator/      ← vendored from anthropics/skills (Apache-2.0)
-    └── brainstorming/                    ← vendored from obra/superpowers (MIT)
+    ├── brainstorming/                    ← vendored from obra/superpowers (MIT)
+    └── writing-plans/                    ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -97,6 +98,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | Skill | Description |
 |---|---|
 | `brainstorming` | Turns an idea into an approved design before any code is written. Sizes how much process the request needs, pins down intent one focused question at a time, proposes 2–3 approaches with a recommendation, and writes the agreed spec to `docs/superpowers/specs/`. Optional local browser "visual companion" for mockups. |
+| `writing-plans` | Turns a spec into a bite-sized implementation plan for an engineer with no context — exact files, names, signatures, tests, and commits per task. Saves to `docs/superpowers/plans/` and hands off to inline or subagent execution. |
 
 ## Getting Started
 
