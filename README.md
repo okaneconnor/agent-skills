@@ -25,7 +25,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── requesting-code-review/           ← vendored from obra/superpowers (MIT)
     ├── receiving-code-review/            ← vendored from obra/superpowers (MIT)
     ├── finishing-a-development-branch/   ← vendored from obra/superpowers (MIT)
-    └── writing-skills/                   ← vendored from obra/superpowers (MIT)
+    ├── writing-skills/                   ← vendored from obra/superpowers (MIT)
+    └── azure-terraform-infrastructure/   ← SKILL.md + REFERENCE.md + templates/
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -42,7 +43,10 @@ packages/
 ├── coding/              ← Coding-discipline bundle (no MCP required)
 │   ├── .apm/
 │   └── apm.yml
-└── workflow/            ← Development-workflow bundle (vendored from obra/superpowers, no MCP required)
+├── workflow/            ← Development-workflow bundle (vendored from obra/superpowers, no MCP required)
+│   ├── .apm/
+│   └── apm.yml
+└── azure/               ← Azure bundle (Terraform landing zone skill, no MCP required)
     ├── .apm/
     └── apm.yml
 .vscode/mcp.json         ← MCP server config for VS Code / Copilot
@@ -122,6 +126,12 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `finishing-a-development-branch` | Wraps up a finished branch: verify the test suite, detect the environment and base branch, offer merge locally / push and open a PR / keep as-is, execute the choice, and clean up the worktree. |
 | `writing-skills` | TDD applied to skill authoring: run pressure scenarios without the skill, write the skill to address the failures you observed, then close loopholes. Covers trigger-only descriptions, token budgets, and testing skills with subagents. |
 
+### Azure
+
+| Skill | Description |
+|---|---|
+| `azure-terraform-infrastructure` | Generates an Azure Landing Zone with Terraform following the Microsoft Cloud Adoption Framework. Ships module templates (hub / spoke VNets, peering, Azure Firewall, NSGs, AKS, VMs, Key Vault, managed identity, Log Analytics, storage), `dev` / `staging` / `prod` environments, a state-backend bootstrap script, and Azure DevOps PR-validation and plan → approve → apply pipelines. Module inputs and outputs are documented in `REFERENCE.md`. No MCP required. |
+
 ## Getting Started
 
 ### Option A — APM (recommended)
@@ -147,6 +157,7 @@ apm install okaneconnor/agent-skills/packages/security
 apm install okaneconnor/agent-skills/packages/builders
 apm install okaneconnor/agent-skills/packages/coding
 apm install okaneconnor/agent-skills/packages/workflow
+apm install okaneconnor/agent-skills/packages/azure
 ```
 
 | Bundle | What's included |
@@ -157,6 +168,7 @@ apm install okaneconnor/agent-skills/packages/workflow
 | `packages/builders` | `mcp-builder` + `skill-creator` skills — vendored from anthropics/skills. Build new MCP servers and author/benchmark new skills. No MCP required. Apache-2.0. |
 | `packages/coding` | `coding-guidelines` skill — KISS / DRY-with-restraint / surgical changes / goal-driven execution. Loads when the assistant is writing or modifying code. No MCP required. |
 | `packages/workflow` | Development-workflow skills from the **Workflow** table above — vendored from obra/superpowers, without the plugin harness. No MCP required. MIT. |
+| `packages/azure` | `azure-terraform-infrastructure` skill — Azure Landing Zone (hub-spoke, AKS, VMs, Key Vault, firewall, monitoring) with Terraform templates and Azure DevOps pipelines. No MCP required. |
 
 APM installs skills to the directory your assistant expects (`.claude/skills/`, `.cursor/skills/`, `.github/skills/`, `.agents/skills/`) and writes the required MCP servers into the matching MCP config file automatically.
 

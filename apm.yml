@@ -5,9 +5,10 @@ description: >
   authoring via the Atlassian MCP, codebase architecture diagramming via the
   Excalidraw MCP, branch-scoped security review (app + cloud / IaC),
   meta-skills for authoring new skills and MCP servers, coding-discipline
-  guidelines (KISS / DRY / surgical changes / goal-driven execution), and
-  development-workflow skills vendored from obra/superpowers. Install all
-  bundles at once or pick individual ones.
+  guidelines (KISS / DRY / surgical changes / goal-driven execution),
+  development-workflow skills vendored from obra/superpowers, and Azure
+  Landing Zone generation with Terraform. Install all bundles at once or pick
+  individual ones.
 author: okaneconnor
 license: MIT
 target: all
@@ -20,3 +21,4 @@ dependencies:
     - okaneconnor/agent-skills/packages/builders
     - okaneconnor/agent-skills/packages/coding
     - okaneconnor/agent-skills/packages/workflow
+    - okaneconnor/agent-skills/packages/azure

@@ -1,0 +1,184 @@
+# =============================================================================
+# PR Validation Pipeline
+# Validates Terraform code on pull requests
+# =============================================================================
+
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - 'modules/**'
+      - 'environments/**'
+      - '*.tf'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: terraform-common
+
+stages:
+  # =============================================================================
+  # Stage: Validate
+  # =============================================================================
+  - stage: Validate
+    displayName: 'Validate Terraform'
+    jobs:
+      - job: ValidateCode
+        displayName: 'Validate Code'
+        steps:
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: 'latest'
+
+          - task: Bash@3
+            displayName: 'Terraform Format Check'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Checking Terraform formatting..."
+                terraform fmt -check -recursive -diff
+                if [ $? -ne 0 ]; then
+                  echo "##vso[task.logissue type=error]Terraform files are not properly formatted. Run 'terraform fmt -recursive' locally."
+                  exit 1
+                fi
+                echo "All files are properly formatted."
+
+          - task: Bash@3
+            displayName: 'Terraform Validate - Dev'
+            inputs:
+              targetType: 'inline'
+              workingDirectory: 'environments/dev'
+              script: |
+                terraform init -backend=false
+                terraform validate
+
+          - task: Bash@3
+            displayName: 'Terraform Validate - Staging'
+            inputs:
+              targetType: 'inline'
+              workingDirectory: 'environments/staging'
+              script: |
+                terraform init -backend=false
+                terraform validate
+
+          - task: Bash@3
+            displayName: 'Terraform Validate - Prod'
+            inputs:
+              targetType: 'inline'
+              workingDirectory: 'environments/prod'
+              script: |
+                terraform init -backend=false
+                terraform validate
+
+  # =============================================================================
+  # Stage: Security Scan
+  # =============================================================================
+  - stage: SecurityScan
+    displayName: 'Security Scan'
+    dependsOn: Validate
+    jobs:
+      - job: Checkov
+        displayName: 'Run Checkov'
+        steps:
+          - task: Bash@3
+            displayName: 'Install Checkov'
+            inputs:
+              targetType: 'inline'
+              script: |
+                pip install checkov
+
+          - task: Bash@3
+            displayName: 'Run Checkov Scan'
+            inputs:
+              targetType: 'inline'
+              script: |
+                checkov -d . --framework terraform --output cli --output junitxml --output-file-path . --soft-fail
+            continueOnError: true
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Checkov Results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'results_junitxml.xml'
+              testRunTitle: 'Checkov Security Scan'
+            condition: always()
+
+      - job: TFLint
+        displayName: 'Run TFLint'
+        steps:
+          - task: Bash@3
+            displayName: 'Install TFLint'
+            inputs:
+              targetType: 'inline'
+              script: |
+                curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+          - task: Bash@3
+            displayName: 'Run TFLint'
+            inputs:
+              targetType: 'inline'
+              script: |
+                tflint --init
+                tflint --recursive --format compact
+            continueOnError: true
+
+  # =============================================================================
+  # Stage: Plan All Environments
+  # =============================================================================
+  - stage: PlanDev
+    displayName: 'Plan Dev'
+    dependsOn: SecurityScan
+    jobs:
+      - job: PlanDev
+        displayName: 'Terraform Plan - Dev'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/dev'
+              serviceConnection: 'azure-dev-connection'
+              environment: 'dev'
+              backendServiceConnection: 'azure-dev-connection'
+              backendResourceGroup: '$(TF_STATE_RG_DEV)'
+              backendStorageAccount: '$(TF_STATE_SA_DEV)'
+              backendKey: 'dev.terraform.tfstate'
+
+  - stage: PlanStaging
+    displayName: 'Plan Staging'
+    dependsOn: SecurityScan
+    jobs:
+      - job: PlanStaging
+        displayName: 'Terraform Plan - Staging'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/staging'
+              serviceConnection: 'azure-staging-connection'
+              environment: 'staging'
+              backendServiceConnection: 'azure-staging-connection'
+              backendResourceGroup: '$(TF_STATE_RG_STAGING)'
+              backendStorageAccount: '$(TF_STATE_SA_STAGING)'
+              backendKey: 'staging.terraform.tfstate'
+
+  - stage: PlanProd
+    displayName: 'Plan Prod'
+    dependsOn: SecurityScan
+    jobs:
+      - job: PlanProd
+        displayName: 'Terraform Plan - Prod'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/prod'
+              serviceConnection: 'azure-prod-connection'
+              environment: 'prod'
+              backendServiceConnection: 'azure-prod-connection'
+              backendResourceGroup: '$(TF_STATE_RG_PROD)'
+              backendStorageAccount: '$(TF_STATE_SA_PROD)'
+              backendKey: 'prod.terraform.tfstate'

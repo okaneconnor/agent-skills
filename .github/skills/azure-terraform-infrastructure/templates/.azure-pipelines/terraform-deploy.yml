@@ -1,0 +1,158 @@
+# =============================================================================
+# Terraform Deploy Pipeline
+# Deploys infrastructure to all environments with approval gates
+# =============================================================================
+
+trigger: none
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: terraform-common
+
+stages:
+  # =============================================================================
+  # DEV ENVIRONMENT
+  # =============================================================================
+  - stage: PlanDev
+    displayName: 'Plan - Dev'
+    jobs:
+      - job: Plan
+        displayName: 'Terraform Plan'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/dev'
+              serviceConnection: 'azure-dev-connection'
+              environment: 'dev'
+              backendServiceConnection: 'azure-dev-connection'
+              backendResourceGroup: '$(TF_STATE_RG_DEV)'
+              backendStorageAccount: '$(TF_STATE_SA_DEV)'
+              backendKey: 'dev.terraform.tfstate'
+
+  - stage: ApplyDev
+    displayName: 'Apply - Dev'
+    dependsOn: PlanDev
+    condition: succeeded()
+    jobs:
+      - deployment: Apply
+        displayName: 'Terraform Apply'
+        environment: 'dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/terraform-apply.yml
+                  parameters:
+                    workingDirectory: 'environments/dev'
+                    serviceConnection: 'azure-dev-connection'
+                    environment: 'dev'
+                    backendServiceConnection: 'azure-dev-connection'
+                    backendResourceGroup: '$(TF_STATE_RG_DEV)'
+                    backendStorageAccount: '$(TF_STATE_SA_DEV)'
+                    backendKey: 'dev.terraform.tfstate'
+
+  # =============================================================================
+  # STAGING ENVIRONMENT
+  # =============================================================================
+  - stage: PlanStaging
+    displayName: 'Plan - Staging'
+    dependsOn: ApplyDev
+    condition: succeeded()
+    jobs:
+      - job: Plan
+        displayName: 'Terraform Plan'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/staging'
+              serviceConnection: 'azure-staging-connection'
+              environment: 'staging'
+              backendServiceConnection: 'azure-staging-connection'
+              backendResourceGroup: '$(TF_STATE_RG_STAGING)'
+              backendStorageAccount: '$(TF_STATE_SA_STAGING)'
+              backendKey: 'staging.terraform.tfstate'
+
+  - stage: ApplyStaging
+    displayName: 'Apply - Staging'
+    dependsOn: PlanStaging
+    condition: succeeded()
+    jobs:
+      - deployment: Apply
+        displayName: 'Terraform Apply'
+        environment: 'staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/terraform-apply.yml
+                  parameters:
+                    workingDirectory: 'environments/staging'
+                    serviceConnection: 'azure-staging-connection'
+                    environment: 'staging'
+                    backendServiceConnection: 'azure-staging-connection'
+                    backendResourceGroup: '$(TF_STATE_RG_STAGING)'
+                    backendStorageAccount: '$(TF_STATE_SA_STAGING)'
+                    backendKey: 'staging.terraform.tfstate'
+
+  # =============================================================================
+  # PRODUCTION ENVIRONMENT
+  # =============================================================================
+  - stage: PlanProd
+    displayName: 'Plan - Prod'
+    dependsOn: ApplyStaging
+    condition: succeeded()
+    jobs:
+      - job: Plan
+        displayName: 'Terraform Plan'
+        steps:
+          - template: templates/terraform-plan.yml
+            parameters:
+              workingDirectory: 'environments/prod'
+              serviceConnection: 'azure-prod-connection'
+              environment: 'prod'
+              backendServiceConnection: 'azure-prod-connection'
+              backendResourceGroup: '$(TF_STATE_RG_PROD)'
+              backendStorageAccount: '$(TF_STATE_SA_PROD)'
+              backendKey: 'prod.terraform.tfstate'
+
+  - stage: ApplyProd
+    displayName: 'Apply - Prod'
+    dependsOn: PlanProd
+    condition: succeeded()
+    jobs:
+      - deployment: Apply
+        displayName: 'Terraform Apply'
+        environment: 'prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/terraform-apply.yml
+                  parameters:
+                    workingDirectory: 'environments/prod'
+                    serviceConnection: 'azure-prod-connection'
+                    environment: 'prod'
+                    backendServiceConnection: 'azure-prod-connection'
+                    backendResourceGroup: '$(TF_STATE_RG_PROD)'
+                    backendStorageAccount: '$(TF_STATE_SA_PROD)'
+                    backendKey: 'prod.terraform.tfstate'
+
+      - job: TagDeployment
+        displayName: 'Tag Deployment'
+        dependsOn: Apply
+        steps:
+          - task: Bash@3
+            displayName: 'Tag Resources'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Deployment completed at $(date)"
+                echo "Build: $(Build.BuildNumber)"
+                echo "Commit: $(Build.SourceVersion)"
