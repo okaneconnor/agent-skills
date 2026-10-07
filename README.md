@@ -17,7 +17,8 @@ A growing collection of agent skills for AI coding assistants (Claude Code, GitH
     ├── writing-plans/                    ← vendored from obra/superpowers (MIT)
     ├── executing-plans/                  ← vendored from obra/superpowers (MIT)
     ├── subagent-driven-development/      ← vendored from obra/superpowers (MIT)
-    └── dispatching-parallel-agents/      ← vendored from obra/superpowers (MIT)
+    ├── dispatching-parallel-agents/      ← vendored from obra/superpowers (MIT)
+    └── using-git-worktrees/              ← vendored from obra/superpowers (MIT)
 packages/
 ├── jira/                ← Jira bundle (skill + Atlassian MCP)
 │   ├── .apm/
@@ -105,6 +106,7 @@ Development-workflow skills vendored from [obra/superpowers](https://github.com/
 | `executing-plans` | Executes a written plan inline in the current session: TDD per task, an on-disk ledger that survives compaction, rulings instead of stalls, and one fresh-context review of the whole branch at the end. The cheaper path when you don't want a subagent per task. |
 | `subagent-driven-development` | Executes a plan by dispatching a fresh implementer subagent per task, a spec-compliance + code-quality review after each, and a broad whole-branch review at the end. Ships helper scripts (`sdd-workspace`, `task-brief`, `review-package`). |
 | `dispatching-parallel-agents` | Splits two or more independent problems (e.g. unrelated test failures) across concurrent subagents — one per problem domain, each with a tightly scoped prompt — then reviews and integrates the results and runs the full suite. |
+| `using-git-worktrees` | Ensures work happens in an isolated workspace: detects existing isolation, prefers the harness's native worktree tool, falls back to `git worktree`, then runs project setup and verifies a clean test baseline. |
 
 ## Getting Started
 
